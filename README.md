@@ -25,7 +25,7 @@ efficient manner.
 Additionally, we would like to investigate how to support several compute
 backends. For now the focus is on:
 
-- [-] Metal.
+- [ ] Metal (in the works).
 - [ ] CUDA.
 
 ## Contributing

@@ -14,7 +14,7 @@ set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 set(SHADERS_DIR "${SRC_DIR}/shaders")
 set(METAL_TESTS_THIRD_PARTY_DIR "${SRC_DIR}/third_party")
 
-include(eigen3)
+include(Eigen3)
 
 add_custom_command(
     OUTPUT ${BUILD_DIR}/ax_minus_b.air

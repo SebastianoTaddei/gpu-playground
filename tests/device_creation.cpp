@@ -4,8 +4,10 @@
 
 int main()
 {
-  backend::Device device{};
+  auto cpu_device   = backend::make_cpu_device();
+  auto metal_device = backend::make_metal_device();
 
-  std::cout << "The device is: " << backend::get_device_name(device.type()) << '\n';
+  std::cout << "The CPU device is:   " << backend::get_device_name(cpu_device->type()) << '\n';
+  std::cout << "The Metal device is: " << backend::get_device_name(metal_device->type()) << '\n';
   return 0;
 }

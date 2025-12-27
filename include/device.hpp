@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstdint>
-#include <memory>
 #include <string_view>
 
 namespace backend
@@ -34,14 +33,15 @@ inline constexpr std::string_view get_device_name(Type const type)
 class Device
 {
 public:
-  Device();
-  ~Device();
+  virtual ~Device() = default;
 
-  Type type() const;
-
-private:
-  struct Impl;
-  std::unique_ptr<Impl> impl;
+  virtual Type type() const = 0;
 };
+
+std::shared_ptr<Device> make_cpu_device();
+
+#ifdef GPU_PLAYGROUND_HAS_METAL
+std::shared_ptr<Device> make_metal_device();
+#endif
 
 } // namespace backend

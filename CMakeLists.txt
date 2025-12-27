@@ -31,7 +31,7 @@ foreach(TEST_SRC "${TEST_SOURCES}")
     "${SRC_DIR}/include"
   )
 
-  target_link_libraries(${TEST_NAME}
+  target_link_libraries(${TEST_NAME} PRIVATE
     gpu_playground::backend
   )
 endforeach()

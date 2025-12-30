@@ -124,8 +124,8 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
     auto metal_from = static_cast<MetalBuffer>(from.get());
     auto metal_to   = static_cast<MetalBuffer>(to.get());
 
-    id<MTLCommandBuffer> commandBuffer = [this->pimpl->queue commandBuffer];
-    id<MTLBlitCommandEncoder> blit     = [commandBuffer blitCommandEncoder];
+    id<MTLCommandBuffer> cmd       = [this->pimpl->queue commandBuffer];
+    id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
 
     [blit copyFromBuffer:metal_from
              sourceOffset:0
@@ -134,8 +134,8 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
                      size:metal_from.length];
 
     [blit endEncoding];
-    [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
+    [cmd commit];
+    [cmd waitUntilCompleted];
   }
 }
 

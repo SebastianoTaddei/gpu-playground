@@ -25,11 +25,20 @@ file(GLOB TEST_SOURCES
   "${SRC_DIR}/tests/*.cpp"
 )
 
+file(GLOB BENCHMARK_SOURCES
+  "${SRC_DIR}/benchmarks/*.cpp"
+)
+
 foreach(TEST_SRC ${TEST_SOURCES})
   get_filename_component(TEST_NAME "${TEST_SRC}" NAME_WE)
+  set(TEST_NAME "test_${TEST_NAME}")
 
   add_executable(${TEST_NAME}
     "${TEST_SRC}"
+  )
+
+  set_target_properties(${TEST_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/tests
   )
 
   target_include_directories(${TEST_NAME} PRIVATE
@@ -37,6 +46,27 @@ foreach(TEST_SRC ${TEST_SOURCES})
   )
 
   target_link_libraries(${TEST_NAME} PRIVATE
+    gpu_playground::backend
+  )
+endforeach()
+
+foreach(BENCHMARK_SRC ${BENCHMARK_SOURCES})
+  get_filename_component(BENCHMARK_NAME "${BENCHMARK_SRC}" NAME_WE)
+  set(BENCHMARK_NAME "benchmark_${BENCHMARK_NAME}")
+
+  add_executable(${BENCHMARK_NAME}
+    "${BENCHMARK_SRC}"
+  )
+
+  set_target_properties(${BENCHMARK_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/benchmarks
+  )
+
+  target_include_directories(${BENCHMARK_NAME} PRIVATE
+    "${SRC_DIR}/include"
+  )
+
+  target_link_libraries(${BENCHMARK_NAME} PRIVATE
     gpu_playground::backend
   )
 endforeach()

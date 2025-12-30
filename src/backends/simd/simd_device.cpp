@@ -12,11 +12,11 @@ void SIMDDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_compatible(a, b, c);
 
-  auto const &simd_a = *static_cast<SIMDBuffer const *>(a.handle.get());
-  auto const &simd_b = *static_cast<SIMDBuffer const *>(b.handle.get());
-  auto &simd_c       = *static_cast<SIMDBuffer *>(c.handle.get());
+  auto const &simd_a = *static_cast<SIMDBuffer const *>(a.get());
+  auto const &simd_b = *static_cast<SIMDBuffer const *>(b.get());
+  auto &simd_c       = *static_cast<SIMDBuffer *>(c.get());
 
-  size_t const size          = a.size;
+  size_t const size          = a.size();
   constexpr size_t simd_size = xsimd::simd_type<float>::size;
   size_t const vec_size      = size - (size % simd_size);
 
@@ -37,13 +37,12 @@ Buffer SIMDDevice::new_buffer(std::vector<float> data) const
 {
   auto const size = data.size();
   return Buffer{
-      .handle =
-          HandlePtr{
-              new SIMDBuffer(data.cbegin(), data.cend()),
-              [](void *ptr) -> void { delete static_cast<SIMDBuffer *>(ptr); }
-          },
-      .size        = size,
-      .device_type = SIMDDevice::s_type,
+      HandlePtr{
+          new SIMDBuffer(data.cbegin(), data.cend()),
+          [](void *ptr) -> void { delete static_cast<SIMDBuffer *>(ptr); }
+      },
+      size,
+      SIMDDevice::s_type,
   };
 }
 
@@ -51,15 +50,15 @@ void SIMDDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   assert_compatible(from, to);
 
-  auto const &simd_from = *static_cast<SIMDBuffer const *>(from.handle.get());
-  auto &simd_to         = *static_cast<SIMDBuffer *>(to.handle.get());
+  auto const &simd_from = *static_cast<SIMDBuffer const *>(from.get());
+  auto &simd_to         = *static_cast<SIMDBuffer *>(to.get());
 
   simd_to = simd_from;
 }
 
 std::vector<float> SIMDDevice::cpu(Buffer const &buffer) const
 {
-  auto simd_buffer = *static_cast<SIMDBuffer const *>(buffer.handle.get());
+  auto simd_buffer = *static_cast<SIMDBuffer const *>(buffer.get());
   return std::vector<float>(simd_buffer.cbegin(), simd_buffer.cend());
 }
 

@@ -12,20 +12,33 @@ namespace gpu_playground::backend
 
 using HandlePtr = std::unique_ptr<void, std::function<void(void *)>>;
 
-struct Buffer
+class Buffer
 {
-  HandlePtr handle;
-  size_t size;
-  DeviceType device_type;
+private:
+  HandlePtr m_handle;
+  size_t m_size;
+  DeviceType m_device_type;
 
-  Buffer()  = delete;
-  ~Buffer() = default;
-
+public:
+  Buffer()                          = delete;
   Buffer(Buffer const &)            = delete;
   Buffer &operator=(Buffer const &) = delete;
+  Buffer(Buffer &&)                 = default;
+  Buffer &operator=(Buffer &&)      = default;
+  ~Buffer()                         = default;
 
-  Buffer(Buffer &&)            = default;
-  Buffer &operator=(Buffer &&) = default;
+  Buffer(HandlePtr handle, size_t size, DeviceType device_type)
+      : m_handle(std::move(handle)), m_size(size), m_device_type(device_type)
+  {
+  }
+
+  [[nodiscard]] void *get() { return this->m_handle.get(); }
+
+  [[nodiscard]] void const *get() const { return this->m_handle.get(); }
+
+  [[nodiscard]] size_t size() const { return this->m_size; }
+
+  [[nodiscard]] DeviceType device_type() const { return this->m_device_type; }
 };
 
 template <typename... Rest>
@@ -38,24 +51,24 @@ template <typename... Rest>
 inline void assert_same_device(Buffer const &first, Rest const &...rest)
 {
   assert_is_buffer<Rest...>();
-  DeviceType const ref = first.device_type;
-  ((assert(rest.device_type == ref && "Buffers are on different devices")), ...);
+  DeviceType const ref = first.device_type();
+  ((assert(rest.device_type() == ref && "Buffers are on different devices")), ...);
 }
 
 template <typename... Rest>
 inline void assert_same_size(Buffer const &first, Rest const &...rest)
 {
   assert_is_buffer<Rest...>();
-  std::size_t const ref = first.size;
-  ((assert(rest.size == ref && "Buffers have different sizes")), ...);
+  std::size_t const ref = first.size();
+  ((assert(rest.size() == ref && "Buffers have different sizes")), ...);
 }
 
 template <typename... Rest>
 inline void assert_size_nonzero(Buffer const &first, Rest const &...rest)
 {
   assert_is_buffer<Rest...>();
-  assert(first.size > 0 && "Buffers have zero size");
-  ((assert(rest.size > 0 && "Buffers have zero size")), ...);
+  assert(first.size() > 0 && "Buffers have zero size");
+  ((assert(rest.size() > 0 && "Buffers have zero size")), ...);
 }
 
 template <typename... Rest>

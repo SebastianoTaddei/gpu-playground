@@ -26,7 +26,7 @@ public:
   }
 
   Tensor(Tensor const &other)
-      : device(other.device), buffer(this->device->new_buffer_with_size(other.buffer.size))
+      : device(other.device), buffer(this->device->new_buffer_with_size(other.buffer.size()))
   {
     this->device->copy_buffer(other.buffer, this->buffer);
   }

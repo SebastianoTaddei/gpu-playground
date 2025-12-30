@@ -68,9 +68,9 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_compatible(a, b, c);
 
-  auto const mtl_a = static_cast<MetalBuffer>(a.handle.get());
-  auto const mtl_b = static_cast<MetalBuffer>(b.handle.get());
-  auto mtl_c       = static_cast<MetalBuffer>(c.handle.get());
+  auto mtl_a = static_cast<MetalBuffer>(a.get());
+  auto mtl_b = static_cast<MetalBuffer>(b.get());
+  auto mtl_c = static_cast<MetalBuffer>(c.get());
 
   id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
 
@@ -81,13 +81,13 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   [enc setBuffer:mtl_b offset:0 atIndex:1];
   [enc setBuffer:mtl_c offset:0 atIndex:2];
 
-  NSUInteger n = a.size;
+  NSUInteger const n = a.size();
 
-  MTLSize gridSize  = MTLSizeMake(n, 1, 1);
-  NSUInteger tgSize = this->pimpl->vec_add_ps.maxTotalThreadsPerThreadgroup;
-  tgSize            = std::min<NSUInteger>(tgSize, n);
+  MTLSize const gridSize = MTLSizeMake(n, 1, 1);
+  NSUInteger const tgSize =
+      std::min<NSUInteger>(this->pimpl->vec_add_ps.maxTotalThreadsPerThreadgroup, n);
 
-  MTLSize threadgroupSize = MTLSizeMake(tgSize, 1, 1);
+  MTLSize const threadgroupSize = MTLSizeMake(tgSize, 1, 1);
 
   [enc dispatchThreads:gridSize threadsPerThreadgroup:threadgroupSize];
 
@@ -106,18 +106,18 @@ Buffer MetalDevice::new_buffer(std::vector<float> data) const
 
   [mtl_buffer retain];
 
+  auto const size = data.size();
   return Buffer{
-      .handle =
-          HandlePtr{
-              mtl_buffer,
-              [](void *ptr) -> void
-              {
-                auto buf = static_cast<MetalBuffer>(ptr);
-                [buf release];
-              }
-          },
-      .size        = data.size(),
-      .device_type = MetalDevice::s_type,
+      HandlePtr{
+          mtl_buffer,
+          [](void *ptr) -> void
+          {
+            auto buf = static_cast<MetalBuffer>(ptr);
+            [buf release];
+          }
+      },
+      size,
+      MetalDevice::s_type
   };
 }
 
@@ -125,8 +125,8 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   assert_compatible(from, to);
 
-  auto const metal_from = static_cast<MetalBuffer>(from.handle.get());
-  auto metal_to         = static_cast<MetalBuffer>(to.handle.get());
+  auto metal_from = static_cast<MetalBuffer>(from.get());
+  auto metal_to   = static_cast<MetalBuffer>(to.get());
 
   id<MTLCommandBuffer> commandBuffer = [this->pimpl->device newCommandQueue].commandBuffer;
   id<MTLBlitCommandEncoder> blit     = [commandBuffer blitCommandEncoder];
@@ -144,10 +144,10 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
 
 std::vector<float> MetalDevice::cpu(Buffer const &buffer) const
 {
-  auto metal_buffer = static_cast<MetalBuffer>(buffer.handle.get());
+  auto metal_buffer = static_cast<MetalBuffer>(buffer.get());
 
-  std::vector<float> result(buffer.size);
-  memcpy(result.data(), metal_buffer.contents, buffer.size * sizeof(float));
+  std::vector<float> result(buffer.size());
+  memcpy(result.data(), metal_buffer.contents, buffer.size() * sizeof(float));
 
   return result;
 }

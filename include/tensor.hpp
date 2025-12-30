@@ -1,6 +1,7 @@
 #pragma once
 
-#include "buffer.hpp"
+#include <utility>
+
 #include "device.hpp"
 
 namespace gpu_playground
@@ -13,8 +14,14 @@ private:
   backend::Buffer buffer;
 
 public:
-  Tensor(std::vector<float> data, DevicePtr const &device)
-      : device(device), buffer(this->device->new_buffer(std::move(data)))
+  Tensor()  = delete;
+  ~Tensor() = default;
+
+  Tensor(Tensor &&)            = default;
+  Tensor &operator=(Tensor &&) = default;
+
+  Tensor(std::vector<float> data, DevicePtr device)
+      : device(std::move(device)), buffer(this->device->new_buffer(std::move(data)))
   {
   }
 
@@ -26,6 +33,11 @@ public:
 
   Tensor &operator=(Tensor const &other)
   {
+    if (this == &other)
+    {
+      return *this;
+    }
+
     this->device = other.device;
     this->device->copy_buffer(other.buffer, this->buffer);
 
@@ -34,8 +46,6 @@ public:
 
   Tensor &operator+=(Tensor const &rhs)
   {
-    backend::assert_compatible(this->buffer, rhs.buffer);
-
     this->device->add(this->buffer, rhs.buffer, this->buffer);
 
     return *this;
@@ -43,7 +53,7 @@ public:
 
   friend Tensor operator+(Tensor lhs, Tensor const &rhs);
 
-  std::vector<float> cpu() const { return this->device->cpu(this->buffer); }
+  [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }
 };
 
 inline Tensor operator+(Tensor lhs, Tensor const &rhs)

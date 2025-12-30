@@ -7,54 +7,46 @@ namespace gpu_playground::backend
 
 using EigenBuffer = Eigen::VectorXf;
 
-EigenDevice::EigenDevice() {}
-
-EigenDevice::~EigenDevice() {}
-
 void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_compatible(a, b, c);
 
-  auto eigen_a = static_cast<EigenBuffer const *>(a.handle.get());
-  auto eigen_b = static_cast<EigenBuffer const *>(b.handle.get());
-  auto eigen_c = static_cast<EigenBuffer *>(c.handle.get());
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.handle.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.handle.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.handle.get());
 
-  *eigen_c = *eigen_a + *eigen_b;
+  eigen_c = eigen_a + eigen_b;
 }
 
 Buffer EigenDevice::new_buffer(std::vector<float> data) const
 {
   return Buffer{
-    .handle =
-      HandlePtr{
-        new EigenBuffer(Eigen::Map<EigenBuffer>(data.data(), data.size())),
-        [](void *ptr) -> void { delete static_cast<EigenBuffer *>(ptr); }
-      },
-    .size        = data.size(),
-    .device_type = EigenDevice::s_type,
+      .handle =
+          HandlePtr{
+              new EigenBuffer(
+                  Eigen::Map<EigenBuffer>(data.data(), static_cast<Eigen::Index>(data.size()))
+              ),
+              [](void *ptr) -> void { delete static_cast<EigenBuffer *>(ptr); }
+          },
+      .size        = data.size(),
+      .device_type = EigenDevice::s_type,
   };
-}
-
-Buffer EigenDevice::new_buffer_with_size(size_t size) const
-{
-  auto const data = std::vector<float>(size, 0.0);
-  return this->new_buffer(std::move(data));
 }
 
 void EigenDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   assert_compatible(from, to);
 
-  auto eigen_from = static_cast<EigenBuffer const *>(from.handle.get());
-  auto eigen_to   = static_cast<EigenBuffer *>(to.handle.get());
+  auto const &eigen_from = *static_cast<EigenBuffer const *>(from.handle.get());
+  auto &eigen_to         = *static_cast<EigenBuffer *>(to.handle.get());
 
-  *eigen_to = *eigen_from;
+  eigen_to = eigen_from;
 }
 
 std::vector<float> EigenDevice::cpu(Buffer const &buffer) const
 {
-  auto eigen_buffer = static_cast<EigenBuffer const *>(buffer.handle.get());
-  return std::vector<float>(eigen_buffer->data(), eigen_buffer->data() + eigen_buffer->size());
+  auto const &eigen_buffer = *static_cast<EigenBuffer const *>(buffer.handle.get());
+  return {eigen_buffer.data(), std::next(eigen_buffer.data(), eigen_buffer.size())};
 }
 
 std::unique_ptr<Device> make_eigen_device();

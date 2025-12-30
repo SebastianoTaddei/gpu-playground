@@ -8,21 +8,17 @@ namespace gpu_playground::backend
 
 using SIMDBuffer = std::vector<float, xsimd::aligned_allocator<float>>;
 
-SIMDDevice::SIMDDevice() {}
-
-SIMDDevice::~SIMDDevice() {}
-
 void SIMDDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_compatible(a, b, c);
 
-  auto simd_a = *static_cast<SIMDBuffer const *>(a.handle.get());
-  auto simd_b = *static_cast<SIMDBuffer const *>(b.handle.get());
-  auto simd_c = *static_cast<SIMDBuffer *>(c.handle.get());
+  auto const &simd_a = *static_cast<SIMDBuffer const *>(a.handle.get());
+  auto const &simd_b = *static_cast<SIMDBuffer const *>(b.handle.get());
+  auto &simd_c       = *static_cast<SIMDBuffer *>(c.handle.get());
 
   size_t const size          = a.size;
   constexpr size_t simd_size = xsimd::simd_type<float>::size;
-  size_t const vec_size      = size - size % simd_size;
+  size_t const vec_size      = size - (size % simd_size);
 
   for (size_t i{0}; i < vec_size; i += simd_size)
   {
@@ -39,31 +35,26 @@ void SIMDDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
 Buffer SIMDDevice::new_buffer(std::vector<float> data) const
 {
+  auto const size = data.size();
   return Buffer{
-    .handle =
-      HandlePtr{
-        new SIMDBuffer(data.cbegin(), data.cend()),
-        [](void *ptr) -> void { delete static_cast<SIMDBuffer *>(ptr); }
-      },
-    .size        = data.size(),
-    .device_type = SIMDDevice::s_type,
+      .handle =
+          HandlePtr{
+              new SIMDBuffer(data.cbegin(), data.cend()),
+              [](void *ptr) -> void { delete static_cast<SIMDBuffer *>(ptr); }
+          },
+      .size        = size,
+      .device_type = SIMDDevice::s_type,
   };
-}
-
-Buffer SIMDDevice::new_buffer_with_size(size_t size) const
-{
-  auto const data = std::vector<float>(size, 0.0);
-  return this->new_buffer(std::move(data));
 }
 
 void SIMDDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   assert_compatible(from, to);
 
-  auto simd_from = static_cast<SIMDBuffer const *>(from.handle.get());
-  auto simd_to   = static_cast<SIMDBuffer *>(to.handle.get());
+  auto const &simd_from = *static_cast<SIMDBuffer const *>(from.handle.get());
+  auto &simd_to         = *static_cast<SIMDBuffer *>(to.handle.get());
 
-  *simd_to = *simd_from;
+  simd_to = simd_from;
 }
 
 std::vector<float> SIMDDevice::cpu(Buffer const &buffer) const

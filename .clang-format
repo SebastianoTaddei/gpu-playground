@@ -1,0 +1,14 @@
+# Braces on a new line
+BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+
+AlignConsecutiveAssignments:
+  Enabled: true
+  AlignCompound: true
+AlignAfterOpenBracket: BlockIndent
+SeparateDefinitionBlocks: Always
+BinPackArguments: false
+BinPackParameters: false
+ColumnLimit: 100
+AlwaysBreakTemplateDeclarations: Yes
+QualifierAlignment: Right

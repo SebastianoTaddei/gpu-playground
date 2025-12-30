@@ -11,21 +11,23 @@ private:
   static constexpr DeviceType s_type{DeviceType::CPU};
 
 public:
-  CPUDevice();
+  CPUDevice() = default;
 
-  ~CPUDevice();
+  CPUDevice(CPUDevice const &)            = default;
+  CPUDevice(CPUDevice &&)                 = delete;
+  CPUDevice &operator=(CPUDevice const &) = default;
+  CPUDevice &operator=(CPUDevice &&)      = delete;
+  ~CPUDevice() override                   = default;
 
-  DeviceType type() const override { return CPUDevice::s_type; }
+  [[nodiscard]] DeviceType type() const override { return CPUDevice::s_type; }
 
   void add(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
-  Buffer new_buffer(std::vector<float> data) const override;
-
-  Buffer new_buffer_with_size(size_t size) const override;
+  [[nodiscard]] Buffer new_buffer(std::vector<float> data) const override;
 
   void copy_buffer(Buffer const &from, Buffer &to) const override;
 
-  std::vector<float> cpu(Buffer const &buffer) const override;
+  [[nodiscard]] std::vector<float> cpu(Buffer const &buffer) const override;
 };
 
 } // namespace gpu_playground::backend

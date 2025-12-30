@@ -14,9 +14,8 @@ struct MetalDevice::Impl
   id<MTLLibrary> library{nil};
   id<MTLComputePipelineState> vec_add_ps{nil};
 
-  Impl()
+  Impl() : device(MTLCreateSystemDefaultDevice())
   {
-    this->device = MTLCreateSystemDefaultDevice();
     [this->device retain];
     assert(this->device != nil);
 
@@ -44,6 +43,11 @@ struct MetalDevice::Impl
 
     [fn release];
   }
+
+  Impl(Impl const &)            = delete;
+  Impl(Impl &&)                 = delete;
+  Impl &operator=(Impl const &) = delete;
+  Impl &operator=(Impl &&)      = delete;
 
   ~Impl()
 
@@ -96,32 +100,25 @@ Buffer MetalDevice::new_buffer(std::vector<float> data) const
 {
   assert(this->pimpl->device != nil);
 
-  MetalBuffer mtl_buffer = [this->pimpl->device
-    newBufferWithBytes:data.data()
-                length:data.size() * sizeof(float)
-               options:MTLResourceStorageModeShared];
+  MetalBuffer mtl_buffer = [this->pimpl->device newBufferWithBytes:data.data()
+                                                            length:data.size() * sizeof(float)
+                                                           options:MTLResourceStorageModeShared];
 
   [mtl_buffer retain];
 
   return Buffer{
-    .handle =
-      HandlePtr{
-        mtl_buffer,
-        [](void *ptr) -> void
-        {
-          auto buf = static_cast<MetalBuffer>(ptr);
-          [buf release];
-        }
-      },
-    .size        = data.size(),
-    .device_type = MetalDevice::s_type,
+      .handle =
+          HandlePtr{
+              mtl_buffer,
+              [](void *ptr) -> void
+              {
+                auto buf = static_cast<MetalBuffer>(ptr);
+                [buf release];
+              }
+          },
+      .size        = data.size(),
+      .device_type = MetalDevice::s_type,
   };
-}
-
-Buffer MetalDevice::new_buffer_with_size(size_t size) const
-{
-  auto const data = std::vector<float>(size, 0.0);
-  return this->new_buffer(std::move(data));
 }
 
 void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
@@ -135,10 +132,10 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
   id<MTLBlitCommandEncoder> blit     = [commandBuffer blitCommandEncoder];
 
   [blit copyFromBuffer:metal_from
-          sourceOffset:0
-              toBuffer:metal_to
-     destinationOffset:0
-                  size:metal_from.length];
+           sourceOffset:0
+               toBuffer:metal_to
+      destinationOffset:0
+                   size:metal_from.length];
 
   [blit endEncoding];
   [commandBuffer commit];

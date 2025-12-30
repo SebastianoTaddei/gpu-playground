@@ -18,16 +18,16 @@ enum class DeviceType : uint8_t
 #define X(type) type,
   DEVICE_TYPES
 #undef X
-    COUNT
+      COUNT
 };
 
 inline constexpr std::array<std::string_view, static_cast<size_t>(DeviceType::COUNT)> device_names{
 #define X(name) #name,
-  DEVICE_TYPES
+    DEVICE_TYPES
 #undef X
 };
 
-inline constexpr std::string_view get_device_name(DeviceType const type)
+constexpr std::string_view get_device_name(DeviceType const type)
 {
   return device_names.at(static_cast<size_t>(type));
 }

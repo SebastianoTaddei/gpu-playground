@@ -18,7 +18,8 @@ struct Buffer
   size_t size;
   DeviceType device_type;
 
-  Buffer() = delete;
+  Buffer()  = delete;
+  ~Buffer() = default;
 
   Buffer(Buffer const &)            = delete;
   Buffer &operator=(Buffer const &) = delete;
@@ -37,7 +38,7 @@ template <typename... Rest>
 inline void assert_same_device(Buffer const &first, Rest const &...rest)
 {
   assert_is_buffer<Rest...>();
-  const DeviceType ref = first.device_type;
+  DeviceType const ref = first.device_type;
   ((assert(rest.device_type == ref && "Buffers are on different devices")), ...);
 }
 
@@ -45,7 +46,7 @@ template <typename... Rest>
 inline void assert_same_size(Buffer const &first, Rest const &...rest)
 {
   assert_is_buffer<Rest...>();
-  const std::size_t ref = first.size;
+  std::size_t const ref = first.size;
   ((assert(rest.size == ref && "Buffers have different sizes")), ...);
 }
 

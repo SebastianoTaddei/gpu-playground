@@ -50,34 +50,42 @@ inline void assert_is_buffer()
 template <typename... Rest>
 inline void assert_same_device(Buffer const &first, Rest const &...rest)
 {
+#ifndef NDEBUG
   assert_is_buffer<Rest...>();
   DeviceType const ref = first.device_type();
   ((assert(rest.device_type() == ref && "Buffers are on different devices")), ...);
+#endif
 }
 
 template <typename... Rest>
 inline void assert_same_size(Buffer const &first, Rest const &...rest)
 {
+#ifndef NDEBUG
   assert_is_buffer<Rest...>();
   std::size_t const ref = first.size();
   ((assert(rest.size() == ref && "Buffers have different sizes")), ...);
+#endif
 }
 
 template <typename... Rest>
 inline void assert_size_nonzero(Buffer const &first, Rest const &...rest)
 {
+#ifndef NDEBUG
   assert_is_buffer<Rest...>();
   assert(first.size() > 0 && "Buffers have zero size");
   ((assert(rest.size() > 0 && "Buffers have zero size")), ...);
+#endif
 }
 
 template <typename... Rest>
 inline void assert_compatible(Buffer const &first, Rest const &...rest)
 {
+#ifndef NDEBUG
   assert_is_buffer<Rest...>();
   assert_same_device(first, rest...);
   assert_same_size(first, rest...);
   assert_size_nonzero(first, rest...);
+#endif
 }
 
 } // namespace gpu_playground::backend

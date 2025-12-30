@@ -56,12 +56,10 @@ int main()
   auto simd_device  = make_simd_device();
   auto metal_device = make_metal_device();
 
-  std::vector<float> vec_a;
-  vec_a.reserve(LEN);
-  std::iota(vec_a.begin(), vec_a.end(), LEN);
-  std::vector<float> vec_b;
-  vec_b.reserve(LEN);
-  std::iota(vec_b.begin(), vec_b.end(), LEN);
+  std::vector<float> vec_a(LEN);
+  std::vector<float> vec_b(LEN);
+  std::iota(vec_a.begin(), vec_a.end(), 0.0);
+  std::iota(vec_b.begin(), vec_b.end(), 1.0);
 
   benchmark_vec_add(cpu_device, vec_a, vec_b);
   benchmark_vec_add(eigen_device, vec_a, vec_b);

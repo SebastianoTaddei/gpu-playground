@@ -4,10 +4,15 @@
 
 using namespace gpu_playground;
 
+namespace
+{
+
 void print_device_type(DevicePtr const &device)
 {
   std::cout << "The device type is: " << get_device_name(device->type()) << '\n';
 }
+
+} // namespace
 
 int main()
 {

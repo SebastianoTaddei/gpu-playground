@@ -7,6 +7,9 @@
 using namespace gpu_playground;
 using vec = std::vector<float>;
 
+namespace
+{
+
 void test_vec_add(DevicePtr const &device, vec const &vec_a, vec const &vec_b)
 {
   assert(vec_a.size() == vec_b.size());
@@ -24,6 +27,8 @@ void test_vec_add(DevicePtr const &device, vec const &vec_a, vec const &vec_b)
   }
   std::cout << '\n';
 }
+
+} // namespace
 
 int main()
 {

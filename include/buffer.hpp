@@ -3,6 +3,7 @@
 #include <cassert>
 #include <functional>
 #include <memory>
+#include <type_traits>
 
 #include "device_types.hpp"
 
@@ -29,23 +30,32 @@ struct Buffer
 namespace backend
 {
 
-template <typename First, typename... Rest>
-inline void assert_same_device(First const &first, Rest const &...rest)
+template <typename... Rest>
+inline void is_buffer()
 {
+  static_assert((std::is_same_v<Buffer, Rest> && ...), "Only Buffers are supported");
+}
+
+template <typename... Rest>
+inline void assert_same_device(Buffer const &first, Rest const &...rest)
+{
+  is_buffer<Rest...>();
   const DeviceType ref = first.device_type;
   ((assert(rest.device_type == ref && "Buffers are on different devices")), ...);
 }
 
-template <typename First, typename... Rest>
-inline void assert_same_size(First const &first, Rest const &...rest)
+template <typename... Rest>
+inline void assert_same_size(Buffer const &first, Rest const &...rest)
 {
+  is_buffer<Rest...>();
   const std::size_t ref = first.size;
   ((assert(rest.size == ref && "Buffers have different sizes")), ...);
 }
 
-template <typename First, typename... Rest>
-inline void assert_compatible(First const &first, Rest const &...rest)
+template <typename... Rest>
+inline void assert_compatible(Buffer const &first, Rest const &...rest)
 {
+  is_buffer<Rest...>();
   assert_same_device(first, rest...);
   assert_same_size(first, rest...);
 }

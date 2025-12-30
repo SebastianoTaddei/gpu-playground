@@ -8,7 +8,7 @@ algebra.
 The idea is to play around with various linear algebra concepts for the GPU.
 For now the focus is on:
 
-- [ ] Vector-vector summation.
+- [x] Vector-vector summation.
 - [ ] Vector-vector multiplication.
 - [ ] Vector-vector multiplication (element-wise).
 - [ ] Matrix-vector summation.
@@ -25,8 +25,18 @@ efficient manner.
 Additionally, we would like to investigate how to support several compute
 backends. For now the focus is on:
 
-- [ ] Metal (in the works).
-- [ ] CUDA.
+- [x] CPU (serial backend on CPU).
+- [x] Eigen (vectorised backend on CPU, thanks to the
+[Eigen](https://libeigen.gitlab.io) library).
+- [x] SIMD (vectorised backend on CPU, thanks to the
+[xsimd](https://xsimd.readthedocs.io/en/latest/) library).
+- [x] Metal (GPU backend).
+- [ ] CUDA (GPU backend).
+
+## Performance
+
+The focus of this library is on learning how vectorised backends work, rather
+than on performance. That said, we will try to optimise it to the best we can.
 
 ## Contributing
 

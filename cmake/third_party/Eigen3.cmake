@@ -1,7 +1,7 @@
 set(EIGEN_REQUIRED_VERSION 3.4.0)
 cmake_policy(SET CMP0135 NEW)
 
-list(APPEND CMAKE_PREFIX_PATH "${METAL_TESTS_THIRD_PARTY_DIR}")
+list(APPEND CMAKE_PREFIX_PATH "${THIRD_PARTY_DIR}")
 find_package(
   Eigen3
   ${EIGEN_REQUIRED_VERSION}
@@ -11,13 +11,13 @@ find_package(
 
 if(NOT TARGET Eigen3::Eigen)
   message(STATUS
-    "Metal Tests: "
+    "GPU Playground: "
     "Did not find Eigen ${EIGEN_REQUIRED_VERSION} installed, "
-    "downloading to ${BSPLINEX_THIRD_PARTY_DIR}"
+    "downloading to ${THIRD_PARTY_DIR}"
   )
   include(FetchContent)
 
-  set(FETCHCONTENT_BASE_DIR "${METAL_TESTS_THIRD_PARTY_DIR}")
+  set(FETCHCONTENT_BASE_DIR "${THIRD_PARTY_DIR}")
   fetchcontent_declare(
       Eigen3
       URL "https://gitlab.com/libeigen/eigen/-/archive/${EIGEN_REQUIRED_VERSION}/eigen-${EIGEN_REQUIRED_VERSION}.tar.gz"
@@ -29,5 +29,7 @@ else()
     Eigen3::Eigen
     INTERFACE_INCLUDE_DIRECTORIES
   )
-  message(STATUS "Metal Tests: Found Eigen installed in ${EIGEN_INCLUDE_DIRS}")
+  message(STATUS
+    "GPU Playground: Found Eigen installed in ${EIGEN_INCLUDE_DIRS}"
+  )
 endif()

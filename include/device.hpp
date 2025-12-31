@@ -30,7 +30,7 @@ public:
 
 using DevicePtr = std::shared_ptr<Device>;
 
-DevicePtr make_cpu_device();
+DevicePtr make_serial_device();
 
 #ifdef GPU_PLAYGROUND_HAS_EIGEN
 DevicePtr make_eigen_device();

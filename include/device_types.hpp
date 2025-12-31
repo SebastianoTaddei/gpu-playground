@@ -8,7 +8,7 @@ namespace gpu_playground
 {
 
 #define DEVICE_TYPES                                                                               \
-  X(CPU)                                                                                           \
+  X(SERIAL)                                                                                        \
   X(EIGEN)                                                                                         \
   X(SIMD)                                                                                          \
   X(METAL)

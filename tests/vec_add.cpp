@@ -32,15 +32,15 @@ void test_vec_add(DevicePtr const &device, vec const &vec_a, vec const &vec_b)
 
 int main()
 {
-  auto cpu_device   = make_cpu_device();
-  auto eigen_device = make_eigen_device();
-  auto simd_device  = make_simd_device();
-  auto metal_device = make_metal_device();
+  auto serial_device = make_serial_device();
+  auto eigen_device  = make_eigen_device();
+  auto simd_device   = make_simd_device();
+  auto metal_device  = make_metal_device();
 
   std::vector<float> const vec_a{0.0, 1.0, 2.0};
   std::vector<float> const vec_b{3.0, 4.0, 5.0};
 
-  test_vec_add(cpu_device, vec_a, vec_b);
+  test_vec_add(serial_device, vec_a, vec_b);
   test_vec_add(eigen_device, vec_a, vec_b);
   test_vec_add(simd_device, vec_a, vec_b);
   test_vec_add(metal_device, vec_a, vec_b);

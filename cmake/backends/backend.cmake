@@ -5,10 +5,10 @@ option(GPU_PLAYGROUND_ENABLE_METAL "Enable Metal backend" OFF)
 add_library(gpu_playground_backend INTERFACE)
 add_library(gpu_playground::backend ALIAS gpu_playground_backend)
 
-message(STATUS "GPU Playground: CPU backend always enabled")
-include(CPU)
+message(STATUS "GPU Playground: serial backend always enabled")
+include(serial)
 target_link_libraries(gpu_playground_backend INTERFACE
-  cpu_backend
+  serial_backend
 )
 
 

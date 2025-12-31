@@ -51,17 +51,17 @@ void benchmark_vec_add(DevicePtr const &device, vec const &vec_a, vec const &vec
 
 int main()
 {
-  auto cpu_device   = make_cpu_device();
-  auto eigen_device = make_eigen_device();
-  auto simd_device  = make_simd_device();
-  auto metal_device = make_metal_device();
+  auto serial_device = make_serial_device();
+  auto eigen_device  = make_eigen_device();
+  auto simd_device   = make_simd_device();
+  auto metal_device  = make_metal_device();
 
   std::vector<float> vec_a(LEN);
   std::vector<float> vec_b(LEN);
   std::iota(vec_a.begin(), vec_a.end(), 0.0);
   std::iota(vec_b.begin(), vec_b.end(), 1.0);
 
-  benchmark_vec_add(cpu_device, vec_a, vec_b);
+  benchmark_vec_add(serial_device, vec_a, vec_b);
   benchmark_vec_add(eigen_device, vec_a, vec_b);
   benchmark_vec_add(simd_device, vec_a, vec_b);
   benchmark_vec_add(metal_device, vec_a, vec_b);

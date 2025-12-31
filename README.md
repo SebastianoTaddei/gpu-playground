@@ -25,7 +25,7 @@ efficient manner.
 Additionally, we would like to investigate how to support several compute
 backends. For now the focus is on:
 
-- [x] CPU (serial backend on CPU).
+- [x] Serial (serial backend on CPU).
 - [x] Eigen (vectorised backend on CPU, thanks to the
 [Eigen](https://libeigen.gitlab.io) library).
 - [x] SIMD (vectorised backend on CPU, thanks to the

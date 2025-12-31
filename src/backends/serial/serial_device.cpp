@@ -47,8 +47,6 @@ std::vector<float> SerialDevice::cpu(Buffer const &buffer) const
   return *static_cast<SerialBuffer const *>(buffer.get());
 }
 
-std::unique_ptr<Device> make_serial_device();
-
 } // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_serial_device()

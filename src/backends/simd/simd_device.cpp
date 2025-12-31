@@ -59,10 +59,8 @@ void SIMDDevice::copy_buffer(Buffer const &from, Buffer &to) const
 std::vector<float> SIMDDevice::cpu(Buffer const &buffer) const
 {
   auto simd_buffer = *static_cast<SIMDBuffer const *>(buffer.get());
-  return std::vector<float>(simd_buffer.cbegin(), simd_buffer.cend());
+  return {simd_buffer.cbegin(), simd_buffer.cend()};
 }
-
-std::unique_ptr<Device> make_simd_device();
 
 } // namespace gpu_playground::backend
 

@@ -49,8 +49,6 @@ std::vector<float> EigenDevice::cpu(Buffer const &buffer) const
   return {eigen_buffer.data(), std::next(eigen_buffer.data(), eigen_buffer.size())};
 }
 
-std::unique_ptr<Device> make_eigen_device();
-
 } // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_eigen_device()

@@ -2,7 +2,7 @@
 
 using namespace metal;
 
-kernel void vec_add(const device float* a,
+kernel void mat_add(const device float* a,
                     const device float* b,
                     device float* c,
                     uint id [[thread_position_in_grid]])

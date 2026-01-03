@@ -11,7 +11,7 @@ struct MetalDevice::Impl
   id<MTLDevice> device{nil};
   id<MTLCommandQueue> queue{nil};
   id<MTLLibrary> library{nil};
-  id<MTLComputePipelineState> vec_add_ps{nil};
+  id<MTLComputePipelineState> mat_add_ps{nil};
 
   Impl() : device(MTLCreateSystemDefaultDevice())
   {
@@ -29,11 +29,11 @@ struct MetalDevice::Impl
     assert(this->library != nil);
     assert(error == nil);
 
-    id<MTLFunction> fn = [this->library newFunctionWithName:@"vec_add"];
+    id<MTLFunction> fn = [this->library newFunctionWithName:@"mat_add"];
     assert(fn != nil);
 
-    this->vec_add_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
-    assert(this->vec_add_ps != nil);
+    this->mat_add_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
+    assert(this->mat_add_ps != nil);
 
     [fn release];
   }
@@ -45,7 +45,7 @@ struct MetalDevice::Impl
 
   ~Impl()
   {
-    [this->vec_add_ps release];
+    [this->mat_add_ps release];
     [this->library release];
     [this->queue release];
     [this->device release];
@@ -72,7 +72,7 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
-    [enc setComputePipelineState:this->pimpl->vec_add_ps];
+    [enc setComputePipelineState:this->pimpl->mat_add_ps];
     [enc setBuffer:mtl_a offset:0 atIndex:0];
     [enc setBuffer:mtl_b offset:0 atIndex:1];
     [enc setBuffer:mtl_c offset:0 atIndex:2];
@@ -81,7 +81,7 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
     MTLSize const gridSize = MTLSizeMake(n, 1, 1);
     NSUInteger const tgSize =
-        std::min<NSUInteger>(this->pimpl->vec_add_ps.maxTotalThreadsPerThreadgroup, n);
+        std::min<NSUInteger>(this->pimpl->mat_add_ps.maxTotalThreadsPerThreadgroup, n);
 
     MTLSize const threadgroupSize = MTLSizeMake(tgSize, 1, 1);
 

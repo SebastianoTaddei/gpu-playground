@@ -20,18 +20,18 @@ public:
   Tensor(Tensor &&)            = default;
   Tensor &operator=(Tensor &&) = default;
 
-  Tensor(std::vector<float> data, DevicePtr device)
-      : device(std::move(device)), buffer(this->device->new_buffer(std::move(data)))
+  Tensor(std::vector<float> data, Shape shape, DevicePtr device)
+      : device(std::move(device)), buffer(this->device->new_buffer(std::move(data), shape))
   {
   }
 
-  Tensor(size_t size, DevicePtr device)
-      : device(std::move(device)), buffer(this->device->new_buffer_with_size(size))
+  Tensor(Shape shape, DevicePtr device)
+      : device(std::move(device)), buffer(this->device->new_buffer_with_shape(shape))
   {
   }
 
   Tensor(Tensor const &other)
-      : device(other.device), buffer(this->device->new_buffer_with_size(other.buffer.size()))
+      : device(other.device), buffer(this->device->new_buffer_with_shape(other.buffer.shape()))
   {
     this->device->copy_buffer(other.buffer, this->buffer);
   }
@@ -57,6 +57,15 @@ public:
   }
 
   friend Tensor operator+(Tensor lhs, Tensor const &rhs);
+
+  Tensor operator*(Tensor const &other) const
+  {
+    Tensor out{
+        Shape{.rows = this->buffer.shape().rows, .cols = other.buffer.shape().cols}, this->device
+    };
+    this->device->mul(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
 
   [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }
 };

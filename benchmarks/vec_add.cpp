@@ -31,9 +31,11 @@ void benchmark_vec_add(DevicePtr const &device, vec const &vec_a, vec const &vec
 {
   assert(vec_a.size() == vec_b.size());
 
-  auto const tensor_a = gpu_playground::Tensor(vec_a, device);
-  auto const tensor_b = gpu_playground::Tensor(vec_b, device);
-  auto tensor_c       = tensor_a + tensor_b;
+  auto const tensor_a =
+      gpu_playground::Tensor(vec_a, Shape{.rows = vec_a.size(), .cols = 1}, device);
+  auto const tensor_b =
+      gpu_playground::Tensor(vec_b, Shape{.rows = vec_b.size(), .cols = 1}, device);
+  auto tensor_c = tensor_a + tensor_b;
 
   auto const start = std::chrono::high_resolution_clock::now();
   for (size_t i{0}; i < RUNS; i++)

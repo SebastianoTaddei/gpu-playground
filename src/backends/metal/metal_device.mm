@@ -62,7 +62,7 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   @autoreleasepool
   {
-    assert_compatible(a, b, c);
+    assert_compatible_add(a, b, c);
 
     auto mtl_a = static_cast<MetalBuffer>(a.get());
     auto mtl_b = static_cast<MetalBuffer>(b.get());
@@ -93,14 +93,23 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   }
 }
 
-Buffer MetalDevice::new_buffer(std::vector<float> data) const
+void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  @autoreleasepool
+  {
+    assert_compatible_mul(a, b, c);
+
+    NSLog(@"Metal multiplication to be implemented");
+  }
+}
+
+Buffer MetalDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   assert(this->pimpl->device != nil);
 
   MetalBuffer mtl_buffer = [this->pimpl->device newBufferWithBytes:data.data()
                                                             length:data.size() * sizeof(float)
                                                            options:MTLResourceStorageModeShared];
-  auto const size        = data.size();
   return Buffer{
       HandlePtr{
           mtl_buffer,
@@ -110,7 +119,7 @@ Buffer MetalDevice::new_buffer(std::vector<float> data) const
             [buf release];
           }
       },
-      size,
+      shape,
       MetalDevice::s_type
   };
 }
@@ -119,7 +128,7 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   @autoreleasepool
   {
-    assert_compatible(from, to);
+    assert_compatible_copy(from, to);
 
     auto metal_from = static_cast<MetalBuffer>(from.get());
     auto metal_to   = static_cast<MetalBuffer>(to.get());

@@ -1,3 +1,4 @@
+#include "Eigen/Core"
 #include "Eigen/Dense"
 
 #include "eigen_device.hpp"
@@ -5,11 +6,11 @@
 namespace gpu_playground::backend
 {
 
-using EigenBuffer = Eigen::VectorXf;
+using EigenBuffer = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
 void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible(a, b, c);
+  assert_compatible_add(a, b, c);
 
   auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
   auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
@@ -18,24 +19,38 @@ void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   eigen_c = eigen_a + eigen_b;
 }
 
-Buffer EigenDevice::new_buffer(std::vector<float> data) const
+void EigenDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  auto const size = data.size();
+  assert_compatible_mul(a, b, c);
+
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+
+  eigen_c = eigen_a * eigen_b;
+}
+
+Buffer EigenDevice::new_buffer(std::vector<float> data, Shape shape) const
+{
   return Buffer{
       HandlePtr{
           new EigenBuffer(
-              Eigen::Map<EigenBuffer>(data.data(), static_cast<Eigen::Index>(data.size()))
+              Eigen::Map<EigenBuffer>(
+                  data.data(),
+                  static_cast<Eigen::Index>(shape.rows),
+                  static_cast<Eigen::Index>(shape.cols)
+              )
           ),
           [](void *ptr) -> void { delete static_cast<EigenBuffer *>(ptr); }
       },
-      size,
+      shape,
       EigenDevice::s_type
   };
 }
 
 void EigenDevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
-  assert_compatible(from, to);
+  assert_compatible_copy(from, to);
 
   auto const &eigen_from = *static_cast<EigenBuffer const *>(from.get());
   auto &eigen_to         = *static_cast<EigenBuffer *>(to.get());

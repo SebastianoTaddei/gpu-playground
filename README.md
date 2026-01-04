@@ -10,10 +10,10 @@ For now the focus is on:
 
 - Matrix operations:
   - [x] vector-vector summation
-  - [ ] vector-vector subtraction
+  - [x] vector-vector subtraction
   - [x] vector-vector multiplication
   - [x] matrix-matrix summation
-  - [ ] matrix-matrix subtraction
+  - [x] matrix-matrix subtraction
   - [x] matrix-matrix multiplication
   - [x] matrix-vector multiplication
   - [ ] matrix-vector summation (via broadcasting)

@@ -68,7 +68,16 @@ public:
     return *this;
   }
 
+  Tensor &operator-=(Tensor const &rhs)
+  {
+    this->device->sub(this->buffer, rhs.buffer, this->buffer);
+
+    return *this;
+  }
+
   friend Tensor operator+(Tensor lhs, Tensor const &rhs);
+
+  friend Tensor operator-(Tensor lhs, Tensor const &rhs);
 
   Tensor operator*(Tensor const &other) const
   {
@@ -103,6 +112,12 @@ public:
 inline Tensor operator+(Tensor lhs, Tensor const &rhs)
 {
   lhs += rhs;
+  return lhs;
+}
+
+inline Tensor operator-(Tensor lhs, Tensor const &rhs)
+{
+  lhs -= rhs;
   return lhs;
 }
 

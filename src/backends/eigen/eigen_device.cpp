@@ -18,6 +18,17 @@ void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   eigen_c = eigen_a + eigen_b;
 }
 
+void EigenDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_same_shape(a, b, c);
+
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+
+  eigen_c = eigen_a - eigen_b;
+}
+
 void EigenDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_compatible_mul(a, b, c);

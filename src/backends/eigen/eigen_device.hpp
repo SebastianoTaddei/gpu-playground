@@ -23,6 +23,8 @@ public:
 
   void add(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
+  void sub(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
   void mul(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
   void cmul(Buffer const &a, Buffer const &b, Buffer &c) const override;

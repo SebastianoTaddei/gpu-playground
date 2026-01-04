@@ -19,6 +19,9 @@ public:
   add(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
 
   virtual void
+  sub(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
+
+  virtual void
   mul(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
 
   virtual void

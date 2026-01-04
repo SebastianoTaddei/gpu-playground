@@ -8,16 +8,25 @@ algebra.
 The idea is to play around with various linear algebra concepts for the GPU.
 For now the focus is on:
 
-- [x] Vector-vector summation.
-- [x] Vector-vector multiplication.
-- [ ] Vector-vector multiplication (element-wise).
-- [ ] Matrix-vector summation (broadcast).
-- [x] Matrix-vector multiplication.
-- [ ] Matrix-vector multiplication (element-wise).
-- [x] Matrix-matrix summation.
-- [x] Matrix-matrix multiplication.
-- [ ] Matrix-matrix multiplication (element-wise).
-- [ ] Solving linear systems (*i.e.,* $Ax = b$)
+- Matrix operations:
+  - [x] vector-vector summation
+  - [ ] vector-vector subtraction
+  - [x] vector-vector multiplication
+  - [x] matrix-matrix summation
+  - [ ] matrix-matrix subtraction
+  - [x] matrix-matrix multiplication
+  - [x] matrix-vector multiplication
+  - [ ] matrix-vector summation (via broadcasting)
+  - [ ] matrix-vector subtraction (via broadcasting)
+- Element-wise operations:
+  - [x] vector-vector multiplication
+  - [ ] vector-vector division
+  - [x] matrix-matrix multiplication
+  - [ ] matrix-matrix division
+  - [ ] matrix-vector multiplication (via broadcasting)
+  - [ ] matrix-vector division (via broadcasting)
+- Linear algebra:
+  - [ ] Solving linear systems (*i.e.,* $Ax = b$)
 
 As such we will create several shaders/kernels to compute this operations in an
 efficient manner.

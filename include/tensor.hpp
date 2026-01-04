@@ -86,6 +86,13 @@ public:
     return out;
   }
 
+  [[nodiscard]] Tensor cdiv(Tensor const &other) const
+  {
+    Tensor out{this->buffer.shape(), this->device};
+    this->device->cdiv(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
+
   friend std::ostream &operator<<(std::ostream &os, Tensor const &t);
 
   [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }

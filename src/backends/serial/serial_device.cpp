@@ -60,6 +60,20 @@ void SerialDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
   }
 }
 
+void SerialDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_same_shape(a, b, c);
+
+  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
+  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
+  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+
+  for (size_t i{0}; i < a.size(); i++)
+  {
+    serial_c[i] = serial_a[i] / serial_b[i];
+  }
+}
+
 Buffer SerialDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   return Buffer{

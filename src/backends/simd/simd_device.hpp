@@ -27,6 +27,8 @@ public:
 
   void cmul(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
+  void cdiv(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
   [[nodiscard]] Buffer new_buffer(std::vector<float> data, Shape shape) const override;
 
   void copy_buffer(Buffer const &from, Buffer &to) const override;

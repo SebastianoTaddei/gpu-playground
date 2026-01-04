@@ -106,9 +106,8 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
   {
     assert_compatible_mul(a, b, c);
 
-    uint const m = a.shape().rows;
-    uint const k = a.shape().cols;
-    uint const n = b.shape().cols;
+    auto const [m, k] = a.shape();
+    auto const n      = b.shape().cols;
 
     auto mtl_a = static_cast<MetalBuffer>(a.get());
     auto mtl_b = static_cast<MetalBuffer>(b.get());
@@ -121,9 +120,9 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
     [enc setBuffer:mtl_a offset:0 atIndex:0];
     [enc setBuffer:mtl_b offset:0 atIndex:1];
     [enc setBuffer:mtl_c offset:0 atIndex:2];
-    [enc setBytes:&m length:sizeof(uint) atIndex:3];
-    [enc setBytes:&k length:sizeof(uint) atIndex:4];
-    [enc setBytes:&n length:sizeof(uint) atIndex:5];
+    [enc setBytes:&m length:sizeof(m) atIndex:3];
+    [enc setBytes:&k length:sizeof(k) atIndex:4];
+    [enc setBytes:&n length:sizeof(n) atIndex:5];
 
     MTLSize const gridSize = MTLSizeMake(n, m, 1);
     NSUInteger const tg    = 16;

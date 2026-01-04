@@ -1,8 +1,8 @@
+#include <cmath>
+
 #include "xsimd/xsimd.hpp"
 
-#include "buffer.hpp"
 #include "simd_device.hpp"
-#include <iostream>
 
 namespace gpu_playground::backend
 {
@@ -23,9 +23,9 @@ void SIMDDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
   for (size_t i{0}; i < vec_size; i += simd_size)
   {
-    auto ba   = xsimd::load_aligned(&simd_a[i]);
-    auto bb   = xsimd::load_aligned(&simd_b[i]);
-    auto bres = ba + bb;
+    auto const ba   = xsimd::load_aligned(&simd_a[i]);
+    auto const bb   = xsimd::load_aligned(&simd_b[i]);
+    auto const bres = ba + bb;
     bres.store_aligned(&simd_c[i]);
   }
   for (size_t i{vec_size}; i < size; i++)
@@ -42,21 +42,35 @@ void SIMDDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
   auto const &simd_b = *static_cast<SIMDBuffer const *>(b.get());
   auto &simd_c       = *static_cast<SIMDBuffer *>(c.get());
 
-  std::cout << "SIMD matrix multiplication implemented as serial\n";
+  auto const [m, k]          = a.shape();
+  auto const n               = b.shape().cols;
+  constexpr size_t simd_size = xsimd::simd_type<float>::size;
+  size_t const n_simd        = n - (n % simd_size);
 
-  auto const [a_rows, a_cols] = a.shape();
-  auto const b_cols           = b.shape().cols;
-  for (size_t i{0}; i < a_rows; i++)
+  for (size_t i{0}; i < m; i++)
   {
-    for (size_t j{0}; j < b_cols; j++)
+    for (size_t j{0}; j < n_simd; j += simd_size)
     {
-      auto const idx = (i * b_cols) + j;
-      float support{0.0};
-      for (size_t k{0}; k < a_cols; k++)
+      xsimd::batch<float> bacc{0.0};
+      for (size_t p{0}; p < k; p++)
       {
-        support += simd_a[(i * a_cols) + k] * simd_b[(k * b_cols) + j];
+        auto const ba = xsimd::broadcast(simd_a[(i * k) + p]);
+        auto const bb = xsimd::load_aligned(&simd_b[(p * n) + j]);
+        bacc          = xsimd::fma(ba, bb, bacc);
       }
-      simd_c[idx] = support;
+
+      bacc.store_aligned(&simd_c[(i * n) + j]);
+    }
+
+    for (size_t j{n_simd}; j < n; j++)
+    {
+      float acc{0.0};
+      for (size_t p{0}; p < k; p++)
+      {
+        acc = std::fma(simd_a[(i * k) + p], simd_b[(p * n) + j], acc);
+      }
+
+      simd_c[(i * n) + j] = acc;
     }
   }
 }

@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "serial_device.hpp"
 
 namespace gpu_playground::backend
@@ -37,7 +39,7 @@ void SerialDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
       float support{0.0};
       for (size_t k{0}; k < a_cols; k++)
       {
-        support += serial_a[(i * a_cols) + k] * serial_b[(k * b_cols) + j];
+        support = std::fma(serial_a[(i * a_cols) + k], serial_b[(k * b_cols) + j], support);
       }
       serial_c[idx] = support;
     }

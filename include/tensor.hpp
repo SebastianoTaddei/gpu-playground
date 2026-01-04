@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utility>
+#include <iostream>
 
 #include "device.hpp"
 
@@ -10,7 +10,7 @@ namespace gpu_playground
 class Tensor
 {
 private:
-  std::shared_ptr<Device> device;
+  DevicePtr device;
   backend::Buffer buffer;
 
 public:
@@ -34,6 +34,18 @@ public:
       : device(other.device), buffer(this->device->new_buffer_with_shape(other.buffer.shape()))
   {
     this->device->copy_buffer(other.buffer, this->buffer);
+  }
+
+  void to(DevicePtr device)
+  {
+    if (this->device == device)
+    {
+      return;
+    }
+
+    auto const data  = this->cpu();
+    auto const shape = this->buffer.shape();
+    *this            = std::move(Tensor(data, shape, std::move(device)));
   }
 
   Tensor &operator=(Tensor const &other)
@@ -67,13 +79,37 @@ public:
     return out;
   }
 
+  friend std::ostream &operator<<(std::ostream &os, Tensor const &t);
+
   [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }
+
+  [[nodiscard]] Shape shape() const { return this->buffer.shape(); }
 };
 
 inline Tensor operator+(Tensor lhs, Tensor const &rhs)
 {
   lhs += rhs;
   return lhs;
+}
+
+inline std::ostream &operator<<(std::ostream &os, Tensor const &t)
+{
+  auto const data         = t.cpu();
+  auto const [rows, cols] = t.shape();
+
+  os << "Tensor(" << rows << "x" << cols << ")\n";
+
+  for (size_t i{0}; i < rows; i++)
+  {
+    os << "[ ";
+    for (size_t j{0}; j < cols; j++)
+    {
+      os << data[(i * cols) + j] << ' ';
+    }
+    os << "]\n";
+  }
+
+  return os;
 }
 
 } // namespace gpu_playground

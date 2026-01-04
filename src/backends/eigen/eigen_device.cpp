@@ -10,7 +10,7 @@ using EigenBuffer = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::
 
 void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible_add(a, b, c);
+  assert_same_shape(a, b, c);
 
   auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
   auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());

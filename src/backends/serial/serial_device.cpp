@@ -9,7 +9,7 @@ using SerialBuffer = std::vector<float>;
 
 void SerialDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible_add(a, b, c);
+  assert_same_shape(a, b, c);
 
   auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
   auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());

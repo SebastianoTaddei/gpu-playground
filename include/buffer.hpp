@@ -93,17 +93,6 @@ inline void assert_valid_copy(Buffer const &first, Rest const &...rest)
 #endif
 }
 
-template <typename... Rest>
-inline void assert_valid_add(Buffer const &first, Rest const &...rest)
-{
-#ifndef NDEBUG
-  auto const rows = first.shape().rows;
-  auto const cols = first.shape().cols;
-  (assert(rest.shape().rows == rows and "Buffers must have the same number of rows"), ...);
-  (assert(rest.shape().cols == cols and "Buffers must have the same number of columns"), ...);
-#endif
-}
-
 inline void assert_valid_mul(Buffer const &a, Buffer const &b, Buffer const &c)
 {
 #ifndef NDEBUG
@@ -127,11 +116,14 @@ inline void assert_compatible_copy(Buffer const &first, Rest const &...rest)
 }
 
 template <typename... Rest>
-inline void assert_compatible_add(Buffer const &first, Rest const &...rest)
+inline void assert_same_shape(Buffer const &first, Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_valid_buffers(first, rest...);
-  assert_valid_add(first, rest...);
+  auto const rows = first.shape().rows;
+  auto const cols = first.shape().cols;
+  (assert(rest.shape().rows == rows and "Buffers must have the same number of rows"), ...);
+  (assert(rest.shape().cols == cols and "Buffers must have the same number of columns"), ...);
 #endif
 }
 

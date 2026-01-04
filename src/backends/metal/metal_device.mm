@@ -70,7 +70,7 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   @autoreleasepool
   {
-    assert_compatible_add(a, b, c);
+    assert_same_shape(a, b, c);
 
     auto mtl_a = static_cast<MetalBuffer>(a.get());
     auto mtl_b = static_cast<MetalBuffer>(b.get());

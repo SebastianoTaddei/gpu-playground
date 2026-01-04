@@ -11,7 +11,7 @@ using SIMDBuffer = std::vector<float, xsimd::aligned_allocator<float>>;
 
 void SIMDDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible_add(a, b, c);
+  assert_same_shape(a, b, c);
 
   auto const &simd_a = *static_cast<SIMDBuffer const *>(a.get());
   auto const &simd_b = *static_cast<SIMDBuffer const *>(b.get());

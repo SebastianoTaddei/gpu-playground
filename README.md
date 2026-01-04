@@ -20,9 +20,9 @@ For now the focus is on:
   - [ ] matrix-vector subtraction (via broadcasting)
 - Element-wise operations:
   - [x] vector-vector multiplication
-  - [ ] vector-vector division
+  - [x] vector-vector division
   - [x] matrix-matrix multiplication
-  - [ ] matrix-matrix division
+  - [x] matrix-matrix division
   - [ ] matrix-vector multiplication (via broadcasting)
   - [ ] matrix-vector division (via broadcasting)
 - Linear algebra:

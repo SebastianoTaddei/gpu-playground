@@ -5,23 +5,21 @@
 namespace gpu_playground::backend
 {
 
-class MetalDevice final : public Device
+class SerialDevice final : public Device
 {
 private:
-  static constexpr DeviceType s_type{DeviceType::METAL};
-  struct Impl;
-  std::unique_ptr<Impl> pimpl;
+  static constexpr DeviceType s_type{DeviceType::SERIAL};
 
 public:
-  MetalDevice();
+  SerialDevice() = default;
 
-  MetalDevice(MetalDevice const &)            = delete;
-  MetalDevice(MetalDevice &&)                 = delete;
-  MetalDevice &operator=(MetalDevice const &) = delete;
-  MetalDevice &operator=(MetalDevice &&)      = delete;
-  ~MetalDevice() override;
+  SerialDevice(SerialDevice const &)            = default;
+  SerialDevice(SerialDevice &&)                 = delete;
+  SerialDevice &operator=(SerialDevice const &) = default;
+  SerialDevice &operator=(SerialDevice &&)      = delete;
+  ~SerialDevice() override                      = default;
 
-  [[nodiscard]] DeviceType type() const override { return MetalDevice::s_type; }
+  [[nodiscard]] DeviceType type() const override { return SerialDevice::s_type; }
 
   void add(Buffer const &a, Buffer const &b, Buffer &c) const override;
 

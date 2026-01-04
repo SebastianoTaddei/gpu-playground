@@ -16,12 +16,12 @@ void print_device_type(DevicePtr const &device)
 
 int main()
 {
-  auto cpu_device   = make_cpu_device();
-  auto eigen_device = make_eigen_device();
-  auto simd_device  = make_simd_device();
-  auto metal_device = make_metal_device();
+  auto serial_device = make_serial_device();
+  auto eigen_device  = make_eigen_device();
+  auto simd_device   = make_simd_device();
+  auto metal_device  = make_metal_device();
 
-  print_device_type(cpu_device);
+  print_device_type(serial_device);
   print_device_type(eigen_device);
   print_device_type(simd_device);
   print_device_type(metal_device);

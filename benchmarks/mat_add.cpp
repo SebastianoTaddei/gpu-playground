@@ -10,7 +10,8 @@ using namespace gpu_playground;
 
 static constexpr double NS_TO_MS{1e-6};
 static constexpr size_t RUNS{1000};
-static constexpr size_t ROWS{10000};
+static constexpr size_t ROWS{1024};
+static constexpr size_t COLS{1024};
 
 namespace
 {
@@ -48,7 +49,7 @@ public:
   }
 };
 
-void benchmark_vec_add(DevicePtr const &device, Tensor &a, Tensor &b)
+void benchmark_mat_add(DevicePtr const &device, Tensor &a, Tensor &b)
 
 {
   a.to(device);
@@ -76,18 +77,19 @@ int main()
   auto simd_device   = make_simd_device();
   auto metal_device  = make_metal_device();
 
-  std::vector<float> a_data(ROWS);
-  std::vector<float> b_data(ROWS);
+  std::vector<float> a_data(ROWS * COLS);
+  std::vector<float> b_data(ROWS * COLS);
   std::iota(a_data.begin(), a_data.end(), 0.0);
   std::iota(b_data.begin(), b_data.end(), 1.0);
-  Shape const shape{.rows = ROWS, .cols = 1};
-  Tensor a(a_data, shape, serial_device);
-  Tensor b(b_data, shape, serial_device);
+  Shape const a_shape{.rows = ROWS, .cols = COLS};
+  Shape const b_shape{.rows = ROWS, .cols = COLS};
+  Tensor a(a_data, a_shape, serial_device);
+  Tensor b(b_data, b_shape, serial_device);
 
-  benchmark_vec_add(serial_device, a, b);
-  benchmark_vec_add(eigen_device, a, b);
-  benchmark_vec_add(simd_device, a, b);
-  benchmark_vec_add(metal_device, a, b);
+  benchmark_mat_add(serial_device, a, b);
+  benchmark_mat_add(eigen_device, a, b);
+  benchmark_mat_add(simd_device, a, b);
+  benchmark_mat_add(metal_device, a, b);
 
   return 0;
 }

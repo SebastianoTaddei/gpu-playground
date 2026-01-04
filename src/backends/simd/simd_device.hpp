@@ -23,7 +23,9 @@ public:
 
   void add(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
-  [[nodiscard]] Buffer new_buffer(std::vector<float> data) const override;
+  void mul(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
+  [[nodiscard]] Buffer new_buffer(std::vector<float> data, Shape shape) const override;
 
   void copy_buffer(Buffer const &from, Buffer &to) const override;
 

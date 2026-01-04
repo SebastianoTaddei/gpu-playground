@@ -58,6 +58,10 @@ foreach(BENCHMARK_SRC ${BENCHMARK_SOURCES})
     "${BENCHMARK_SRC}"
   )
 
+  target_compile_options(${BENCHMARK_NAME} PRIVATE
+    -march=native
+  )
+
   set_target_properties(${BENCHMARK_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/benchmarks
   )

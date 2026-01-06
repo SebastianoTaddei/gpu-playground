@@ -53,7 +53,8 @@ inline void assert_is_buffer()
 }
 
 template <typename... Rest>
-inline void assert_same_device(Buffer const &first, Rest const &...rest)
+inline void
+assert_same_device([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_is_buffer<Rest...>();
@@ -63,7 +64,8 @@ inline void assert_same_device(Buffer const &first, Rest const &...rest)
 }
 
 template <typename... Rest>
-inline void assert_size_nonzero(Buffer const &first, Rest const &...rest)
+inline void
+assert_size_nonzero([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_is_buffer<Rest...>();
@@ -73,7 +75,8 @@ inline void assert_size_nonzero(Buffer const &first, Rest const &...rest)
 }
 
 template <typename... Rest>
-inline void assert_valid_buffers(Buffer const &first, Rest const &...rest)
+inline void
+assert_valid_buffers([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_is_buffer<Rest...>();
@@ -83,7 +86,8 @@ inline void assert_valid_buffers(Buffer const &first, Rest const &...rest)
 }
 
 template <typename... Rest>
-inline void assert_valid_copy(Buffer const &first, Rest const &...rest)
+inline void
+assert_valid_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   auto const rows = first.shape().rows;
@@ -93,11 +97,13 @@ inline void assert_valid_copy(Buffer const &first, Rest const &...rest)
 #endif
 }
 
-inline void assert_valid_mul(Buffer const &a, Buffer const &b, Buffer const &c)
+inline void assert_valid_mul(
+    [[maybe_unused]] Buffer const &a,
+    [[maybe_unused]] Buffer const &b,
+    [[maybe_unused]] Buffer const &c
+)
 {
 #ifndef NDEBUG
-  auto const rows = a.shape().rows;
-  auto const cols = b.shape().cols;
   assert(a.shape().cols == b.shape().rows and "Input buffers shape error");
   assert(
       (c.shape().rows == a.shape().rows and c.shape().cols == b.shape().cols) and
@@ -107,7 +113,8 @@ inline void assert_valid_mul(Buffer const &a, Buffer const &b, Buffer const &c)
 }
 
 template <typename... Rest>
-inline void assert_compatible_copy(Buffer const &first, Rest const &...rest)
+inline void
+assert_compatible_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_valid_buffers(first, rest...);
@@ -116,18 +123,22 @@ inline void assert_compatible_copy(Buffer const &first, Rest const &...rest)
 }
 
 template <typename... Rest>
-inline void assert_same_shape(Buffer const &first, Rest const &...rest)
+inline void
+assert_same_shape([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
 #ifndef NDEBUG
   assert_valid_buffers(first, rest...);
-  auto const rows = first.shape().rows;
-  auto const cols = first.shape().cols;
+  auto const [rows, cols] = first.shape();
   (assert(rest.shape().rows == rows and "Buffers must have the same number of rows"), ...);
   (assert(rest.shape().cols == cols and "Buffers must have the same number of columns"), ...);
 #endif
 }
 
-inline void assert_compatible_mul(Buffer const &a, Buffer const &b, Buffer const &c)
+inline void assert_compatible_mul(
+    [[maybe_unused]] Buffer const &a,
+    [[maybe_unused]] Buffer const &b,
+    [[maybe_unused]] Buffer const &c
+)
 {
 #ifndef NDEBUG
   assert_valid_buffers(a, b, c);

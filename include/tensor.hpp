@@ -45,7 +45,7 @@ public:
 
     auto const data  = this->cpu();
     auto const shape = this->buffer.shape();
-    *this            = std::move(Tensor(data, shape, std::move(device)));
+    *this            = Tensor(data, shape, std::move(device));
   }
 
   Tensor &operator=(Tensor const &other)
@@ -81,9 +81,7 @@ public:
 
   Tensor operator*(Tensor const &other) const
   {
-    Tensor out{
-        Shape{.rows = this->buffer.shape().rows, .cols = other.buffer.shape().cols}, this->device
-    };
+    Tensor out{Shape{this->buffer.shape().rows, other.buffer.shape().cols}, this->device};
     this->device->mul(this->buffer, other.buffer, out.buffer);
     return out;
   }

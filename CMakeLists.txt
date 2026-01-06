@@ -10,6 +10,15 @@ set(CMAKE_OBJCXX_STANDARD 17)
 set(CMAKE_OBJCXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+if(NOT CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/lib")
+  message(STATUS
+    "BSplineX: "
+    "CMAKE_INSTALL_PREFIX not specified, "
+    "defaulting to ${CMAKE_CURRENT_SOURCE_DIR}"
+  )
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING
       "Choose the type of build." FORCE)
@@ -21,56 +30,38 @@ set(THIRD_PARTY_DIR "${SRC_DIR}/third_party")
 
 include(backend)
 
-file(GLOB TEST_SOURCES
-  "${SRC_DIR}/tests/*.cpp"
+add_library(gpu_playground INTERFACE)
+add_library(gpu_playground::gpu_playground ALIAS gpu_playground)
+
+target_link_libraries(gpu_playground INTERFACE
+  gpu_playground::backend
 )
 
-file(GLOB BENCHMARK_SOURCES
-  "${SRC_DIR}/benchmarks/*.cpp"
+target_include_directories(gpu_playground INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
-foreach(TEST_SRC ${TEST_SOURCES})
-  get_filename_component(TEST_NAME "${TEST_SRC}" NAME_WE)
-  set(TEST_NAME "test_${TEST_NAME}")
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  option(BUILD_TESTS "Build tests" OFF)
+  option(BUILD_BENCHMARKS "Build benchmarks" OFF)
 
-  add_executable(${TEST_NAME}
-    "${TEST_SRC}"
+  if(BUILD_TESTS)
+    string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO
+      "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}"
+    )
+    add_subdirectory(${SRC_DIR}/tests)
+  endif()
+
+  if(BUILD_BENCHMARKS)
+    add_subdirectory(${SRC_DIR}/benchmarks)
+  endif()
+endif()
+
+if(MSVC)
+  target_compile_options(gpu_playground INTERFACE /W4 /WX)
+else()
+  target_compile_options(gpu_playground INTERFACE
+    -Wall -Wextra -pedantic -Werror
   )
-
-  set_target_properties(${TEST_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/tests
-  )
-
-  target_include_directories(${TEST_NAME} PRIVATE
-    "${SRC_DIR}/include"
-  )
-
-  target_link_libraries(${TEST_NAME} PRIVATE
-    gpu_playground::backend
-  )
-endforeach()
-
-foreach(BENCHMARK_SRC ${BENCHMARK_SOURCES})
-  get_filename_component(BENCHMARK_NAME "${BENCHMARK_SRC}" NAME_WE)
-  set(BENCHMARK_NAME "benchmark_${BENCHMARK_NAME}")
-
-  add_executable(${BENCHMARK_NAME}
-    "${BENCHMARK_SRC}"
-  )
-
-  target_compile_options(${BENCHMARK_NAME} PRIVATE
-    -march=native
-  )
-
-  set_target_properties(${BENCHMARK_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/benchmarks
-  )
-
-  target_include_directories(${BENCHMARK_NAME} PRIVATE
-    "${SRC_DIR}/include"
-  )
-
-  target_link_libraries(${BENCHMARK_NAME} PRIVATE
-    gpu_playground::backend
-  )
-endforeach()
+endif()

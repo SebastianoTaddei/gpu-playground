@@ -6,31 +6,13 @@
 #include "catch2/catch_test_macros.hpp"
 
 #include "device.hpp"
-#include "device_types.hpp"
 #include "tensor.hpp"
 
 using namespace gpu_playground;
-using vec = std::vector<float>;
-
-namespace
-{
-
-void bench_mat_mul(DevicePtr const &device, Tensor &a, Tensor &b)
-{
-  a.to(device);
-  b.to(device);
-
-  BENCHMARK(std::string(get_device_name(device->type()))) { return a * b; };
-}
-
-} // namespace
 
 TEST_CASE("vector: mul", "[vector]")
 {
-  auto serial_device = make_serial_device();
-  auto eigen_device  = make_eigen_device();
-  auto simd_device   = make_simd_device();
-  auto metal_device  = make_metal_device();
+  auto const devices = make_devices();
 
   constexpr size_t len{1'000};
   std::vector<float> a_data(len);
@@ -39,11 +21,17 @@ TEST_CASE("vector: mul", "[vector]")
   std::iota(b_data.begin(), b_data.end(), 1.0);
   Shape const a_shape{len, 1};
   Shape const b_shape{1, len};
-  Tensor a(a_data, a_shape, serial_device);
-  Tensor b(b_data, b_shape, serial_device);
+  Tensor a(a_data, a_shape, devices[DeviceIdx::SERIAL]);
+  Tensor b(b_data, b_shape, devices[DeviceIdx::SERIAL]);
 
-  bench_mat_mul(serial_device, a, b);
-  bench_mat_mul(eigen_device, a, b);
-  bench_mat_mul(simd_device, a, b);
-  bench_mat_mul(metal_device, a, b);
+  for (auto const &device : devices)
+  {
+    if (device != nullptr)
+    {
+      a.to(device);
+      b.to(device);
+
+      BENCHMARK(std::string(get_device_name(device->type()))) { return a * b; };
+    }
+  }
 }

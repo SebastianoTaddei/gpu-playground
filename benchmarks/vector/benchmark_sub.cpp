@@ -10,27 +10,10 @@
 #include "tensor.hpp"
 
 using namespace gpu_playground;
-using vec = std::vector<float>;
-
-namespace
-{
-
-void bench_mat_sub(DevicePtr const &device, Tensor &a, Tensor &b)
-{
-  a.to(device);
-  b.to(device);
-
-  BENCHMARK(std::string(get_device_name(device->type()))) { return a - b; };
-}
-
-} // namespace
 
 TEST_CASE("vector: sub", "[vector]")
 {
-  auto serial_device = make_serial_device();
-  auto eigen_device  = make_eigen_device();
-  auto simd_device   = make_simd_device();
-  auto metal_device  = make_metal_device();
+  auto const devices = make_devices();
 
   constexpr size_t len{1'000'000};
   std::vector<float> a_data(len);
@@ -38,11 +21,17 @@ TEST_CASE("vector: sub", "[vector]")
   std::iota(a_data.begin(), a_data.end(), 0.0);
   std::iota(b_data.begin(), b_data.end(), 1.0);
   Shape const shape{len, 1};
-  Tensor a(a_data, shape, serial_device);
-  Tensor b(b_data, shape, serial_device);
+  Tensor a(a_data, shape, devices[DeviceIdx::SERIAL]);
+  Tensor b(b_data, shape, devices[DeviceIdx::SERIAL]);
 
-  bench_mat_sub(serial_device, a, b);
-  bench_mat_sub(eigen_device, a, b);
-  bench_mat_sub(simd_device, a, b);
-  bench_mat_sub(metal_device, a, b);
+  for (auto const &device : devices)
+  {
+    if (device != nullptr)
+    {
+      a.to(device);
+      b.to(device);
+
+      BENCHMARK(std::string(get_device_name(device->type()))) { return a - b; };
+    }
+  }
 }

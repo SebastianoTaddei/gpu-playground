@@ -58,4 +58,29 @@ DevicePtr make_simd_device();
 DevicePtr make_metal_device();
 #endif
 
+inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
+{
+
+  std::array<DevicePtr, DeviceIdx::COUNT> devices{};
+
+  devices[DeviceIdx::SERIAL] = make_serial_device();
+#ifdef GPU_PLAYGROUND_HAS_EIGEN
+  devices[DeviceIdx::EIGEN] = make_eigen_device();
+#else
+  devices[DeviceIdx::EIGEN] = nullptr;
+#endif
+#ifdef GPU_PLAYGROUND_HAS_SIMD
+  devices[DeviceIdx::SIMD] = make_simd_device();
+#else
+  devices[DeviceIdx::SIMD] = nullptr;
+#endif
+#ifdef GPU_PLAYGROUND_HAS_METAL
+  devices[DeviceIdx::METAL] = make_metal_device();
+#else
+  devices[DeviceIdx::METAL] = nullptr;
+#endif
+
+  return devices;
+}
+
 } // namespace gpu_playground

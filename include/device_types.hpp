@@ -21,7 +21,16 @@ enum class DeviceType : uint8_t
       COUNT
 };
 
-inline constexpr std::array<std::string_view, static_cast<size_t>(DeviceType::COUNT)> device_names{
+enum DeviceIdx : uint8_t
+{
+
+#define X(type) type,
+  DEVICE_TYPES
+#undef X
+      COUNT
+};
+
+inline constexpr std::array<std::string_view, DeviceIdx::COUNT> device_names{
 #define X(name) #name,
     DEVICE_TYPES
 #undef X

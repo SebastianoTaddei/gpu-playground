@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/third_party")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/backends")
 
-project(gpu_playground LANGUAGES CXX OBJCXX)
+project(gpu_playground LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 if(NOT CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/lib")
   message(STATUS
-    "BSplineX: "
+    "GPU Playground: "
     "CMAKE_INSTALL_PREFIX not specified, "
     "defaulting to ${CMAKE_CURRENT_SOURCE_DIR}"
   )

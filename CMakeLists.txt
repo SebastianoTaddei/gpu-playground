@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 if(NOT CMAKE_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/lib")
   message(STATUS
-    "BSplineX: "
+    "GPU Playground: "
     "CMAKE_INSTALL_PREFIX not specified, "
     "defaulting to ${CMAKE_CURRENT_SOURCE_DIR}"
   )

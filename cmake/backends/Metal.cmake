@@ -1,6 +1,8 @@
 set(SHADERS_DIR "${SRC_DIR}/src/backends/metal/shaders")
 set(MTL_LIB_DIR "${BUILD_DIR}/src/backends/metal/shaders")
 
+enable_language(OBJCXX)
+
 function(add_metal_library TARGET SHADER_DIR OUTPUT_DIR METALLIB_NAME)
   file(GLOB METAL_SOURCES "${SHADER_DIR}/*.metal")
 

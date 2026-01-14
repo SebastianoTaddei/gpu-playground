@@ -3,6 +3,23 @@
 
 #include "metal_device.hpp"
 
+namespace
+{
+
+void metal_wait_release(id<MTLCommandBuffer> &cmd)
+{
+  if (cmd == nil)
+  {
+    return;
+  }
+
+  [cmd waitUntilCompleted];
+  [cmd release];
+  cmd = nil;
+}
+
+} // namespace
+
 namespace gpu_playground::backend
 {
 
@@ -73,6 +90,8 @@ struct MetalDevice::Impl
 
   ~Impl()
   {
+    [this->mat_cdiv_ps release];
+    [this->mat_cmul_ps release];
     [this->mat_mul_ps release];
     [this->mat_add_ps release];
     [this->mat_sub_ps release];
@@ -82,7 +101,12 @@ struct MetalDevice::Impl
   }
 };
 
-using MetalBuffer = id<MTLBuffer>;
+// using MetalBuffer = id<MTLBuffer>;
+struct MetalBuffer
+{
+  id<MTLBuffer> buffer{nil};
+  mutable id<MTLCommandBuffer> last_cmd{nil};
+};
 
 MetalDevice::MetalDevice() : pimpl(std::make_unique<Impl>()) {}
 
@@ -94,17 +118,17 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   {
     assert_same_shape(a, b, c);
 
-    auto mtl_a = static_cast<MetalBuffer>(a.get());
-    auto mtl_b = static_cast<MetalBuffer>(b.get());
-    auto mtl_c = static_cast<MetalBuffer>(c.get());
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
     id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_add_ps];
-    [enc setBuffer:mtl_a offset:0 atIndex:0];
-    [enc setBuffer:mtl_b offset:0 atIndex:1];
-    [enc setBuffer:mtl_c offset:0 atIndex:2];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
 
     NSUInteger const n = a.size();
 
@@ -118,7 +142,10 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_c->last_cmd);
+    mtl_c->last_cmd = cmd;
   }
 }
 
@@ -128,17 +155,17 @@ void MetalDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
   {
     assert_same_shape(a, b, c);
 
-    auto mtl_a = static_cast<MetalBuffer>(a.get());
-    auto mtl_b = static_cast<MetalBuffer>(b.get());
-    auto mtl_c = static_cast<MetalBuffer>(c.get());
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
     id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_sub_ps];
-    [enc setBuffer:mtl_a offset:0 atIndex:0];
-    [enc setBuffer:mtl_b offset:0 atIndex:1];
-    [enc setBuffer:mtl_c offset:0 atIndex:2];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
 
     NSUInteger const n = a.size();
 
@@ -152,7 +179,10 @@ void MetalDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_c->last_cmd);
+    mtl_c->last_cmd = cmd;
   }
 }
 
@@ -165,17 +195,17 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const [m, k] = a.shape();
     auto const n      = b.shape().cols;
 
-    auto mtl_a = static_cast<MetalBuffer>(a.get());
-    auto mtl_b = static_cast<MetalBuffer>(b.get());
-    auto mtl_c = static_cast<MetalBuffer>(c.get());
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
     id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_mul_ps];
-    [enc setBuffer:mtl_a offset:0 atIndex:0];
-    [enc setBuffer:mtl_b offset:0 atIndex:1];
-    [enc setBuffer:mtl_c offset:0 atIndex:2];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
     [enc setBytes:&m length:sizeof(m) atIndex:3];
     [enc setBytes:&k length:sizeof(k) atIndex:4];
     [enc setBytes:&n length:sizeof(n) atIndex:5];
@@ -188,7 +218,10 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_c->last_cmd);
+    mtl_c->last_cmd = cmd;
   }
 }
 
@@ -198,17 +231,17 @@ void MetalDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
   {
     assert_same_shape(a, b, c);
 
-    auto mtl_a = static_cast<MetalBuffer>(a.get());
-    auto mtl_b = static_cast<MetalBuffer>(b.get());
-    auto mtl_c = static_cast<MetalBuffer>(c.get());
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
     id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_cmul_ps];
-    [enc setBuffer:mtl_a offset:0 atIndex:0];
-    [enc setBuffer:mtl_b offset:0 atIndex:1];
-    [enc setBuffer:mtl_c offset:0 atIndex:2];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
 
     NSUInteger const n = a.size();
 
@@ -222,7 +255,10 @@ void MetalDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_c->last_cmd);
+    mtl_c->last_cmd = cmd;
   }
 }
 
@@ -232,17 +268,17 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   {
     assert_same_shape(a, b, c);
 
-    auto mtl_a = static_cast<MetalBuffer>(a.get());
-    auto mtl_b = static_cast<MetalBuffer>(b.get());
-    auto mtl_c = static_cast<MetalBuffer>(c.get());
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
     id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_cdiv_ps];
-    [enc setBuffer:mtl_a offset:0 atIndex:0];
-    [enc setBuffer:mtl_b offset:0 atIndex:1];
-    [enc setBuffer:mtl_c offset:0 atIndex:2];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
 
     NSUInteger const n = a.size();
 
@@ -256,7 +292,10 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_c->last_cmd);
+    mtl_c->last_cmd = cmd;
   }
 }
 
@@ -264,16 +303,19 @@ Buffer MetalDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   assert(this->pimpl->device != nil);
 
-  MetalBuffer mtl_buffer = [this->pimpl->device newBufferWithBytes:data.data()
-                                                            length:data.size() * sizeof(float)
-                                                           options:MTLResourceStorageModeShared];
+  MetalBuffer mtl_buffer{};
+  mtl_buffer.buffer = [this->pimpl->device newBufferWithBytes:data.data()
+                                                       length:data.size() * sizeof(float)
+                                                      options:MTLResourceStorageModeShared];
+
   return Buffer{
       HandlePtr{
-          mtl_buffer,
+          new MetalBuffer(mtl_buffer),
           [](void *ptr) -> void
           {
-            auto buf = static_cast<MetalBuffer>(ptr);
-            [buf release];
+            auto *buf = static_cast<MetalBuffer *>(ptr);
+            metal_wait_release(buf->last_cmd);
+            [buf->buffer release];
           }
       },
       shape,
@@ -287,30 +329,35 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
   {
     assert_compatible_copy(from, to);
 
-    auto metal_from = static_cast<MetalBuffer>(from.get());
-    auto metal_to   = static_cast<MetalBuffer>(to.get());
+    auto const *mtl_from = static_cast<MetalBuffer const *>(from.get());
+    auto *mtl_to         = static_cast<MetalBuffer *>(to.get());
 
     id<MTLCommandBuffer> cmd       = [this->pimpl->queue commandBuffer];
     id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
 
-    [blit copyFromBuffer:metal_from
+    [blit copyFromBuffer:mtl_from->buffer
              sourceOffset:0
-                 toBuffer:metal_to
+                 toBuffer:mtl_to->buffer
         destinationOffset:0
-                     size:metal_from.length];
+                     size:mtl_from->buffer.length];
 
     [blit endEncoding];
     [cmd commit];
-    [cmd waitUntilCompleted];
+    [cmd retain];
+
+    metal_wait_release(mtl_to->last_cmd);
+    mtl_to->last_cmd = cmd;
   }
 }
 
 std::vector<float> MetalDevice::cpu(Buffer const &buffer) const
 {
-  auto metal_buffer = static_cast<MetalBuffer>(buffer.get());
+  auto const *mtl_buf = static_cast<MetalBuffer const *>(buffer.get());
+
+  metal_wait_release(mtl_buf->last_cmd);
 
   std::vector<float> result(buffer.size());
-  memcpy(result.data(), metal_buffer.contents, buffer.size() * sizeof(float));
+  memcpy(result.data(), mtl_buf->buffer.contents, buffer.size() * sizeof(float));
 
   return result;
 }

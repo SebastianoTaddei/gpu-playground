@@ -115,6 +115,8 @@ std::vector<float> SerialDevice::cpu(Buffer const &buffer) const
   return *static_cast<SerialBuffer const *>(buffer.get());
 }
 
+void SerialDevice::sync([[maybe_unused]] Buffer const &buffer) const {}
+
 } // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_serial_device()

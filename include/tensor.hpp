@@ -104,6 +104,8 @@ public:
 
   [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }
 
+  void sync() const { this->device->sync(this->buffer); }
+
   [[nodiscard]] Shape shape() const { return this->buffer.shape(); }
 };
 

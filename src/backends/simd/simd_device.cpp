@@ -174,6 +174,8 @@ std::vector<float> SIMDDevice::cpu(Buffer const &buffer) const
   return {simd_buffer.cbegin(), simd_buffer.cend()};
 }
 
+void SIMDDevice::sync(Buffer const &buffer) const {}
+
 } // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_simd_device()

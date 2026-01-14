@@ -144,7 +144,7 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_c->last_cmd);
+    [mtl_c->last_cmd release];
     mtl_c->last_cmd = cmd;
   }
 }
@@ -181,7 +181,7 @@ void MetalDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_c->last_cmd);
+    [mtl_c->last_cmd release];
     mtl_c->last_cmd = cmd;
   }
 }
@@ -220,7 +220,7 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_c->last_cmd);
+    [mtl_c->last_cmd release];
     mtl_c->last_cmd = cmd;
   }
 }
@@ -257,7 +257,7 @@ void MetalDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_c->last_cmd);
+    [mtl_c->last_cmd release];
     mtl_c->last_cmd = cmd;
   }
 }
@@ -294,7 +294,7 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_c->last_cmd);
+    [mtl_c->last_cmd release];
     mtl_c->last_cmd = cmd;
   }
 }
@@ -314,7 +314,7 @@ Buffer MetalDevice::new_buffer(std::vector<float> data, Shape shape) const
           [](void *ptr) -> void
           {
             auto *buf = static_cast<MetalBuffer *>(ptr);
-            metal_wait_release(buf->last_cmd);
+            [buf->last_cmd release];
             [buf->buffer release];
           }
       },
@@ -345,7 +345,7 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
     [cmd commit];
     [cmd retain];
 
-    metal_wait_release(mtl_to->last_cmd);
+    [mtl_to->last_cmd release];
     mtl_to->last_cmd = cmd;
   }
 }
@@ -360,6 +360,12 @@ std::vector<float> MetalDevice::cpu(Buffer const &buffer) const
   memcpy(result.data(), mtl_buf->buffer.contents, buffer.size() * sizeof(float));
 
   return result;
+}
+
+void MetalDevice::sync(Buffer const &buffer) const
+{
+  auto const *mtl_buf = static_cast<MetalBuffer const *>(buffer.get());
+  metal_wait_release(mtl_buf->last_cmd);
 }
 
 } // namespace gpu_playground::backend

@@ -96,6 +96,8 @@ std::vector<float> EigenDevice::cpu(Buffer const &buffer) const
   return {eigen_buffer.data(), std::next(eigen_buffer.data(), eigen_buffer.size())};
 }
 
+void EigenDevice::sync([[maybe_unused]] Buffer const &buffer) const {}
+
 } // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_eigen_device()

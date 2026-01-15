@@ -63,6 +63,17 @@ void EigenDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   eigen_c = eigen_a.cwiseQuotient(eigen_b);
 }
 
+void EigenDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_compatible_smul(a, b, c);
+
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+
+  eigen_c = eigen_a * eigen_b(0);
+}
+
 Buffer EigenDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   return Buffer{

@@ -1,5 +1,6 @@
 #include <cmath>
 
+#include "buffer.hpp"
 #include "serial_device.hpp"
 
 namespace gpu_playground::backend
@@ -85,6 +86,21 @@ void SerialDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   for (size_t i{0}; i < a.size(); i++)
   {
     serial_c[i] = serial_a[i] / serial_b[i];
+  }
+}
+
+void SerialDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_compatible_smul(a, b, c);
+
+  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
+  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
+  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+
+  auto const sb = serial_b.front();
+  for (size_t i{0}; i < a.size(); i++)
+  {
+    serial_c[i] = serial_a[i] * sb;
   }
 }
 

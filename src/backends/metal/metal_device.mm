@@ -43,6 +43,7 @@ struct MetalDevice::Impl
   id<MTLComputePipelineState> mat_mul_ps{nil};
   id<MTLComputePipelineState> mat_cmul_ps{nil};
   id<MTLComputePipelineState> mat_cdiv_ps{nil};
+  id<MTLComputePipelineState> mat_smul_ps{nil};
   id<MTLComputePipelineState> mat_trans_ps{nil};
 
   Impl() : device(MTLCreateSystemDefaultDevice())
@@ -91,6 +92,12 @@ struct MetalDevice::Impl
     this->mat_cdiv_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
     assert(this->mat_cdiv_ps != nil);
 
+    fn = [this->library newFunctionWithName:@"mat_smul"];
+    assert(fn != nil);
+
+    this->mat_smul_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
+    assert(this->mat_smul_ps != nil);
+
     fn = [this->library newFunctionWithName:@"mat_trans"];
     assert(fn != nil);
 
@@ -108,6 +115,7 @@ struct MetalDevice::Impl
   ~Impl()
   {
     [this->mat_trans_ps release];
+    [this->mat_smul_ps release];
     [this->mat_cdiv_ps release];
     [this->mat_cmul_ps release];
     [this->mat_mul_ps release];
@@ -305,6 +313,43 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
     MTLSize const gridSize = MTLSizeMake(n, 1, 1);
     NSUInteger const tgSize =
         std::min<NSUInteger>(this->pimpl->mat_cdiv_ps.maxTotalThreadsPerThreadgroup, n);
+
+    MTLSize const threadgroupSize = MTLSizeMake(tgSize, 1, 1);
+
+    [enc dispatchThreads:gridSize threadsPerThreadgroup:threadgroupSize];
+
+    [enc endEncoding];
+    [cmd commit];
+
+    cmd_swap(mtl_c->last_cmd, cmd);
+  }
+}
+
+void MetalDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  @autoreleasepool
+  {
+    assert_compatible_smul(a, b, c);
+
+    auto const *mtl_a = static_cast<MetalBuffer const *>(a.get());
+    auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
+    auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
+
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
+    id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
+
+    [enc setComputePipelineState:this->pimpl->mat_smul_ps];
+    [enc setBuffer:mtl_a->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_b->buffer offset:0 atIndex:1];
+    [enc setBuffer:mtl_c->buffer offset:0 atIndex:2];
+
+    NSUInteger const n = a.size();
+
+    MTLSize const gridSize = MTLSizeMake(n, 1, 1);
+    NSUInteger const tgSize =
+        std::min<NSUInteger>(this->pimpl->mat_smul_ps.maxTotalThreadsPerThreadgroup, n);
 
     MTLSize const threadgroupSize = MTLSizeMake(tgSize, 1, 1);
 

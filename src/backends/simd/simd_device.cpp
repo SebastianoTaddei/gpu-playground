@@ -146,6 +146,32 @@ void SIMDDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   }
 }
 
+void SIMDDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_compatible_smul(a, b, c);
+
+  auto const &simd_a = *static_cast<SIMDBuffer const *>(a.get());
+  auto const &simd_b = *static_cast<SIMDBuffer const *>(b.get());
+  auto &simd_c       = *static_cast<SIMDBuffer *>(c.get());
+
+  size_t const size          = a.size();
+  constexpr size_t simd_size = xsimd::simd_type<float>::size;
+  size_t const vec_size      = size - (size % simd_size);
+
+  auto const sb = simd_b.front();
+  auto const bb = xsimd::broadcast(sb);
+  for (size_t i{0}; i < vec_size; i += simd_size)
+  {
+    auto const ba   = xsimd::load_aligned(&simd_a[i]);
+    auto const bres = ba * bb;
+    bres.store_aligned(&simd_c[i]);
+  }
+  for (size_t i{vec_size}; i < size; i++)
+  {
+    simd_c[i] = simd_a[i] * sb;
+  }
+}
+
 Buffer SIMDDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   auto const size = data.size();

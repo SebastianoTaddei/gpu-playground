@@ -169,4 +169,17 @@ inline void assert_compatible_mul(
 #endif
 }
 
+inline void assert_compatible_smul(
+    [[maybe_unused]] Buffer const &a,
+    [[maybe_unused]] Buffer const &b,
+    [[maybe_unused]] Buffer const &c
+)
+{
+#ifndef NDEBUG
+  assert_same_shape(a, c);
+  assert(b.shape().rows == 1 and "Buffer must have 1 row");
+  assert(b.shape().cols == 1 and "Buffer must have 1 column");
+#endif
+}
+
 } // namespace gpu_playground::backend

@@ -100,6 +100,13 @@ public:
     return out;
   }
 
+  [[nodiscard]] Tensor smul(Tensor const &other) const
+  {
+    Tensor out{this->buffer.shape(), this->device};
+    this->device->smul(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
+
   [[nodiscard]] Tensor transpose() const
   {
     auto const [rows, cols] = this->buffer.shape();

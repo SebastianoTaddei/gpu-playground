@@ -1,4 +1,5 @@
 #include "Eigen/Dense"
+#include "buffer.hpp"
 
 #include "eigen_device.hpp"
 
@@ -88,6 +89,16 @@ void EigenDevice::copy_buffer(Buffer const &from, Buffer &to) const
   auto &eigen_to         = *static_cast<EigenBuffer *>(to.get());
 
   eigen_to = eigen_from;
+}
+
+void EigenDevice::transpose(Buffer const &from, Buffer &to) const
+{
+  assert_compatible_transpose(from, to);
+
+  auto const &eigen_from = *static_cast<EigenBuffer const *>(from.get());
+  auto &eigen_to         = *static_cast<EigenBuffer *>(to.get());
+
+  eigen_to = eigen_from.transpose();
 }
 
 std::vector<float> EigenDevice::cpu(Buffer const &buffer) const

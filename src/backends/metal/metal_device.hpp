@@ -37,6 +37,8 @@ public:
 
   void copy_buffer(Buffer const &from, Buffer &to) const override;
 
+  void transpose(Buffer const &from, Buffer &to) const override;
+
   [[nodiscard]] std::vector<float> cpu(Buffer const &buffer) const override;
 
   void sync(Buffer const &buffer) const override;

@@ -39,6 +39,8 @@ public:
 
   virtual void copy_buffer(backend::Buffer const &from, backend::Buffer &to) const = 0;
 
+  virtual void transpose(backend::Buffer const &from, backend::Buffer &to) const = 0;
+
   [[nodiscard]] virtual std::vector<float> cpu(backend::Buffer const &buffer) const = 0;
 
   virtual void sync(backend::Buffer const &buffer) const = 0;

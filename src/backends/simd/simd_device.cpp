@@ -1,5 +1,6 @@
 #include <cmath>
 
+#include "buffer.hpp"
 #include "xsimd/xsimd.hpp"
 
 #include "simd_device.hpp"
@@ -166,6 +167,23 @@ void SIMDDevice::copy_buffer(Buffer const &from, Buffer &to) const
   auto &simd_to         = *static_cast<SIMDBuffer *>(to.get());
 
   simd_to = simd_from;
+}
+
+void SIMDDevice::transpose(Buffer const &from, Buffer &to) const
+{
+  assert_compatible_transpose(from, to);
+
+  auto const &simd_from = *static_cast<SIMDBuffer const *>(from.get());
+  auto &simd_to         = *static_cast<SIMDBuffer *>(to.get());
+
+  auto const [rows, cols] = from.shape();
+  for (size_t i{0}; i < rows; i++)
+  {
+    for (size_t j{0}; j < cols; j++)
+    {
+      simd_to[(j * rows) + i] = simd_from[(i * cols) + j];
+    }
+  }
 }
 
 std::vector<float> SIMDDevice::cpu(Buffer const &buffer) const

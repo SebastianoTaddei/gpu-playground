@@ -1,3 +1,4 @@
+#include "buffer.hpp"
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
@@ -6,7 +7,7 @@
 namespace
 {
 
-void metal_wait_release(id<MTLCommandBuffer> &cmd)
+void cmd_wait_release(id<MTLCommandBuffer> &cmd)
 {
   if (cmd == nil)
   {
@@ -16,6 +17,15 @@ void metal_wait_release(id<MTLCommandBuffer> &cmd)
   [cmd waitUntilCompleted];
   [cmd release];
   cmd = nil;
+}
+
+void cmd_swap(id<MTLCommandBuffer> &old_cmd, id<MTLCommandBuffer> &new_cmd)
+{
+  if (old_cmd != nil)
+  {
+    [old_cmd release];
+  }
+  old_cmd = new_cmd;
 }
 
 } // namespace
@@ -33,6 +43,7 @@ struct MetalDevice::Impl
   id<MTLComputePipelineState> mat_mul_ps{nil};
   id<MTLComputePipelineState> mat_cmul_ps{nil};
   id<MTLComputePipelineState> mat_cdiv_ps{nil};
+  id<MTLComputePipelineState> mat_trans_ps{nil};
 
   Impl() : device(MTLCreateSystemDefaultDevice())
   {
@@ -80,6 +91,12 @@ struct MetalDevice::Impl
     this->mat_cdiv_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
     assert(this->mat_cdiv_ps != nil);
 
+    fn = [this->library newFunctionWithName:@"mat_trans"];
+    assert(fn != nil);
+
+    this->mat_trans_ps = [this->device newComputePipelineStateWithFunction:fn error:&error];
+    assert(this->mat_trans_ps != nil);
+
     [fn release];
   }
 
@@ -90,6 +107,7 @@ struct MetalDevice::Impl
 
   ~Impl()
   {
+    [this->mat_trans_ps release];
     [this->mat_cdiv_ps release];
     [this->mat_cmul_ps release];
     [this->mat_mul_ps release];
@@ -122,7 +140,9 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
     auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
-    id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_add_ps];
@@ -142,10 +162,8 @@ void MetalDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd retain];
 
-    [mtl_c->last_cmd release];
-    mtl_c->last_cmd = cmd;
+    cmd_swap(mtl_c->last_cmd, cmd);
   }
 }
 
@@ -159,7 +177,9 @@ void MetalDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
     auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
-    id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_sub_ps];
@@ -179,10 +199,8 @@ void MetalDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd retain];
 
-    [mtl_c->last_cmd release];
-    mtl_c->last_cmd = cmd;
+    cmd_swap(mtl_c->last_cmd, cmd);
   }
 }
 
@@ -199,7 +217,9 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
     auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
-    id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_mul_ps];
@@ -218,10 +238,8 @@ void MetalDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd retain];
 
-    [mtl_c->last_cmd release];
-    mtl_c->last_cmd = cmd;
+    cmd_swap(mtl_c->last_cmd, cmd);
   }
 }
 
@@ -235,7 +253,9 @@ void MetalDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
     auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
-    id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_cmul_ps];
@@ -255,10 +275,8 @@ void MetalDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd retain];
 
-    [mtl_c->last_cmd release];
-    mtl_c->last_cmd = cmd;
+    cmd_swap(mtl_c->last_cmd, cmd);
   }
 }
 
@@ -272,7 +290,9 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
     auto const *mtl_b = static_cast<MetalBuffer const *>(b.get());
     auto *mtl_c       = static_cast<MetalBuffer *>(c.get());
 
-    id<MTLCommandBuffer> cmd         = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
 
     [enc setComputePipelineState:this->pimpl->mat_cdiv_ps];
@@ -292,10 +312,8 @@ void MetalDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
 
     [enc endEncoding];
     [cmd commit];
-    [cmd retain];
 
-    [mtl_c->last_cmd release];
-    mtl_c->last_cmd = cmd;
+    cmd_swap(mtl_c->last_cmd, cmd);
   }
 }
 
@@ -332,7 +350,9 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
     auto const *mtl_from = static_cast<MetalBuffer const *>(from.get());
     auto *mtl_to         = static_cast<MetalBuffer *>(to.get());
 
-    id<MTLCommandBuffer> cmd       = [this->pimpl->queue commandBuffer];
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
+    [cmd retain];
+
     id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
 
     [blit copyFromBuffer:mtl_from->buffer
@@ -343,10 +363,43 @@ void MetalDevice::copy_buffer(Buffer const &from, Buffer &to) const
 
     [blit endEncoding];
     [cmd commit];
+
+    cmd_swap(mtl_to->last_cmd, cmd);
+  }
+}
+
+void MetalDevice::transpose(Buffer const &from, Buffer &to) const
+{
+  @autoreleasepool
+  {
+    assert_compatible_transpose(from, to);
+
+    auto const [m, n] = from.shape();
+
+    auto const *mtl_from = static_cast<MetalBuffer const *>(from.get());
+    auto *mtl_to         = static_cast<MetalBuffer *>(to.get());
+
+    id<MTLCommandBuffer> cmd = [this->pimpl->queue commandBuffer];
     [cmd retain];
 
-    [mtl_to->last_cmd release];
-    mtl_to->last_cmd = cmd;
+    id<MTLComputeCommandEncoder> enc = [cmd computeCommandEncoder];
+
+    [enc setComputePipelineState:this->pimpl->mat_trans_ps];
+    [enc setBuffer:mtl_from->buffer offset:0 atIndex:0];
+    [enc setBuffer:mtl_to->buffer offset:0 atIndex:1];
+    [enc setBytes:&m length:sizeof(m) atIndex:2];
+    [enc setBytes:&n length:sizeof(n) atIndex:3];
+
+    MTLSize const gridSize = MTLSizeMake(n, m, 1);
+    NSUInteger const tg    = 16;
+    MTLSize const tgSize   = MTLSizeMake(tg, tg, 1);
+
+    [enc dispatchThreads:gridSize threadsPerThreadgroup:tgSize];
+
+    [enc endEncoding];
+    [cmd commit];
+
+    cmd_swap(mtl_to->last_cmd, cmd);
   }
 }
 
@@ -354,7 +407,7 @@ std::vector<float> MetalDevice::cpu(Buffer const &buffer) const
 {
   auto const *mtl_buf = static_cast<MetalBuffer const *>(buffer.get());
 
-  metal_wait_release(mtl_buf->last_cmd);
+  cmd_wait_release(mtl_buf->last_cmd);
 
   std::vector<float> result(buffer.size());
   memcpy(result.data(), mtl_buf->buffer.contents, buffer.size() * sizeof(float));
@@ -365,7 +418,7 @@ std::vector<float> MetalDevice::cpu(Buffer const &buffer) const
 void MetalDevice::sync(Buffer const &buffer) const
 {
   auto const *mtl_buf = static_cast<MetalBuffer const *>(buffer.get());
-  metal_wait_release(mtl_buf->last_cmd);
+  cmd_wait_release(mtl_buf->last_cmd);
 }
 
 } // namespace gpu_playground::backend

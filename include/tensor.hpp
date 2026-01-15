@@ -100,6 +100,14 @@ public:
     return out;
   }
 
+  [[nodiscard]] Tensor transpose() const
+  {
+    auto const [rows, cols] = this->buffer.shape();
+    Tensor out{Shape{cols, rows}, this->device};
+    this->device->transpose(this->buffer, out.buffer);
+    return out;
+  }
+
   friend std::ostream &operator<<(std::ostream &os, Tensor const &t);
 
   [[nodiscard]] std::vector<float> cpu() const { return this->device->cpu(this->buffer); }

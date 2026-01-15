@@ -97,6 +97,18 @@ assert_valid_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest co
 #endif
 }
 
+template <typename... Rest>
+inline void
+assert_valid_transpose([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
+{
+#ifndef NDEBUG
+  auto const rows = first.shape().rows;
+  auto const cols = first.shape().cols;
+  (assert(rest.shape().rows == cols and "Output buffers rows must equals input cols"), ...);
+  (assert(rest.shape().cols == rows and "Output buffers cols must equals input rows"), ...);
+#endif
+}
+
 inline void assert_valid_mul(
     [[maybe_unused]] Buffer const &a,
     [[maybe_unused]] Buffer const &b,
@@ -119,6 +131,17 @@ assert_compatible_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Re
 #ifndef NDEBUG
   assert_valid_buffers(first, rest...);
   assert_valid_copy(first, rest...);
+#endif
+}
+
+template <typename... Rest>
+inline void assert_compatible_transpose(
+    [[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest
+)
+{
+#ifndef NDEBUG
+  assert_valid_buffers(first, rest...);
+  assert_valid_transpose(first, rest...);
 #endif
 }
 

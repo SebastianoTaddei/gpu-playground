@@ -97,6 +97,18 @@ assert_valid_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest co
 #endif
 }
 
+template <typename... Rest>
+inline void
+assert_valid_transpose([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
+{
+#ifndef NDEBUG
+  auto const rows = first.shape().rows;
+  auto const cols = first.shape().cols;
+  (assert(rest.shape().rows == cols and "Output buffers rows must equals input cols"), ...);
+  (assert(rest.shape().cols == rows and "Output buffers cols must equals input rows"), ...);
+#endif
+}
+
 inline void assert_valid_mul(
     [[maybe_unused]] Buffer const &a,
     [[maybe_unused]] Buffer const &b,
@@ -123,6 +135,17 @@ assert_compatible_copy([[maybe_unused]] Buffer const &first, [[maybe_unused]] Re
 }
 
 template <typename... Rest>
+inline void assert_compatible_transpose(
+    [[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest
+)
+{
+#ifndef NDEBUG
+  assert_valid_buffers(first, rest...);
+  assert_valid_transpose(first, rest...);
+#endif
+}
+
+template <typename... Rest>
 inline void
 assert_same_shape([[maybe_unused]] Buffer const &first, [[maybe_unused]] Rest const &...rest)
 {
@@ -143,6 +166,19 @@ inline void assert_compatible_mul(
 #ifndef NDEBUG
   assert_valid_buffers(a, b, c);
   assert_valid_mul(a, b, c);
+#endif
+}
+
+inline void assert_compatible_smul(
+    [[maybe_unused]] Buffer const &a,
+    [[maybe_unused]] Buffer const &b,
+    [[maybe_unused]] Buffer const &c
+)
+{
+#ifndef NDEBUG
+  assert_same_shape(a, c);
+  assert(b.shape().rows == 1 and "Buffer must have 1 row");
+  assert(b.shape().cols == 1 and "Buffer must have 1 column");
 #endif
 }
 

@@ -1,5 +1,6 @@
 #include <cmath>
 
+#include "buffer.hpp"
 #include "serial_device.hpp"
 
 namespace gpu_playground::backend
@@ -88,6 +89,21 @@ void SerialDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   }
 }
 
+void SerialDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_compatible_smul(a, b, c);
+
+  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
+  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
+  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+
+  auto const sb = serial_b.front();
+  for (size_t i{0}; i < a.size(); i++)
+  {
+    serial_c[i] = serial_a[i] * sb;
+  }
+}
+
 Buffer SerialDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   return Buffer{
@@ -110,10 +126,29 @@ void SerialDevice::copy_buffer(Buffer const &from, Buffer &to) const
   serial_to = serial_from;
 }
 
+void SerialDevice::transpose(Buffer const &from, Buffer &to) const
+{
+  assert_compatible_transpose(from, to);
+
+  auto const &serial_from = *static_cast<SerialBuffer const *>(from.get());
+  auto &serial_to         = *static_cast<SerialBuffer *>(to.get());
+
+  auto const [rows, cols] = from.shape();
+  for (size_t i{0}; i < rows; i++)
+  {
+    for (size_t j{0}; j < cols; j++)
+    {
+      serial_to[(j * rows) + i] = serial_from[(i * cols) + j];
+    }
+  }
+}
+
 std::vector<float> SerialDevice::cpu(Buffer const &buffer) const
 {
   return *static_cast<SerialBuffer const *>(buffer.get());
 }
+
+void SerialDevice::sync([[maybe_unused]] Buffer const &buffer) const {}
 
 } // namespace gpu_playground::backend
 

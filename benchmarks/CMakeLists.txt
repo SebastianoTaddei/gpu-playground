@@ -47,3 +47,19 @@ target_link_libraries(benchmark_matrix_vector PRIVATE
 )
 
 catch_discover_tests(benchmark_matrix_vector)
+
+file(GLOB_RECURSE ALGORITHMS_BENCHMARKS
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/benchmark_*.cpp"
+)
+
+add_executable(benchmark_algorithms ${ALGORITHMS_BENCHMARKS})
+
+target_include_directories(benchmark_algorithms PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_link_libraries(benchmark_algorithms PRIVATE
+  gpu_playground Catch2::Catch2WithMain
+)
+
+catch_discover_tests(benchmark_algorithms)

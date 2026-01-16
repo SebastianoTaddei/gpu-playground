@@ -30,6 +30,9 @@ public:
   virtual void
   cdiv(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
 
+  virtual void
+  smul(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
+
   [[nodiscard]] virtual backend::Buffer new_buffer(std::vector<float> data, Shape shape) const = 0;
 
   [[nodiscard]] backend::Buffer new_buffer_with_shape(Shape shape) const
@@ -39,7 +42,11 @@ public:
 
   virtual void copy_buffer(backend::Buffer const &from, backend::Buffer &to) const = 0;
 
+  virtual void transpose(backend::Buffer const &from, backend::Buffer &to) const = 0;
+
   [[nodiscard]] virtual std::vector<float> cpu(backend::Buffer const &buffer) const = 0;
+
+  virtual void sync(backend::Buffer const &buffer) const = 0;
 };
 
 using DevicePtr = std::shared_ptr<Device>;

@@ -39,3 +39,19 @@ target_link_libraries(test_matrix_vector PRIVATE
 )
 
 catch_discover_tests(test_matrix_vector)
+
+file(GLOB_RECURSE ALGORITHM_TESTS
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/test_*.cpp"
+)
+
+add_executable(test_algorithms ${ALGORITHM_TESTS})
+
+target_include_directories(test_algorithms PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_link_libraries(test_algorithms PRIVATE
+  gpu_playground Catch2::Catch2WithMain
+)
+
+catch_discover_tests(test_algorithms)

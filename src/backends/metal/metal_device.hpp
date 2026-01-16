@@ -33,11 +33,17 @@ public:
 
   void cdiv(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
+  void smul(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
   [[nodiscard]] Buffer new_buffer(std::vector<float> data, Shape shape) const override;
 
   void copy_buffer(Buffer const &from, Buffer &to) const override;
 
+  void transpose(Buffer const &from, Buffer &to) const override;
+
   [[nodiscard]] std::vector<float> cpu(Buffer const &buffer) const override;
+
+  void sync(Buffer const &buffer) const override;
 };
 
 } // namespace gpu_playground::backend

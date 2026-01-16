@@ -1,4 +1,5 @@
 #include "Eigen/Dense"
+#include "buffer.hpp"
 
 #include "eigen_device.hpp"
 
@@ -62,6 +63,17 @@ void EigenDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
   eigen_c = eigen_a.cwiseQuotient(eigen_b);
 }
 
+void EigenDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  assert_compatible_smul(a, b, c);
+
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+
+  eigen_c = eigen_a * eigen_b(0);
+}
+
 Buffer EigenDevice::new_buffer(std::vector<float> data, Shape shape) const
 {
   return Buffer{
@@ -90,11 +102,23 @@ void EigenDevice::copy_buffer(Buffer const &from, Buffer &to) const
   eigen_to = eigen_from;
 }
 
+void EigenDevice::transpose(Buffer const &from, Buffer &to) const
+{
+  assert_compatible_transpose(from, to);
+
+  auto const &eigen_from = *static_cast<EigenBuffer const *>(from.get());
+  auto &eigen_to         = *static_cast<EigenBuffer *>(to.get());
+
+  eigen_to = eigen_from.transpose();
+}
+
 std::vector<float> EigenDevice::cpu(Buffer const &buffer) const
 {
   auto const &eigen_buffer = *static_cast<EigenBuffer const *>(buffer.get());
   return {eigen_buffer.data(), std::next(eigen_buffer.data(), eigen_buffer.size())};
 }
+
+void EigenDevice::sync([[maybe_unused]] Buffer const &buffer) const {}
 
 } // namespace gpu_playground::backend
 

@@ -1,6 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <random>
 
 #include "device.hpp"
 
@@ -34,6 +37,17 @@ public:
       : device(other.device), buffer(this->device->new_buffer_with_shape(other.buffer.shape()))
   {
     this->device->copy_buffer(other.buffer, this->buffer);
+  }
+
+  static Tensor Rand(Shape shape, DevicePtr device)
+  {
+    size_t const size{shape.rows * shape.cols};
+    std::vector<float> data;
+    data.reserve(size);
+    std::mt19937 rng{std::random_device{}()};
+    std::uniform_real_distribution<float> dist(1.0, 2.0);
+    std::generate_n(std::back_inserter(data), size, [&rng, &dist]() { return dist(rng); });
+    return {std::move(data), shape, std::move(device)};
   }
 
   void to(DevicePtr device)

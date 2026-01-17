@@ -26,7 +26,7 @@ TEST_CASE("algorithms: gradient descent", "[algorithms]")
   Shape const b_shape{5, 1};
   Tensor a(a_data, a_shape, devices[DeviceIdx::SERIAL]);
   Tensor b(b_data, b_shape, devices[DeviceIdx::SERIAL]);
-  Tensor x0(b_shape, devices[DeviceIdx::SERIAL]);
+  Tensor x0 = Tensor::zeros(b_shape, devices[DeviceIdx::SERIAL]);
 
   for (auto const &device : devices)
   {

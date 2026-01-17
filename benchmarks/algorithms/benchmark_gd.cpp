@@ -17,9 +17,9 @@ TEST_CASE("algorithms: gradient descent", "[algorithms]")
   constexpr size_t cols{100};
   Shape const a_shape{rows, cols};
   Shape const b_shape{cols, 1};
-  Tensor a  = Tensor::Rand(a_shape, devices[DeviceIdx::SERIAL]);
-  Tensor b  = Tensor::Rand(b_shape, devices[DeviceIdx::SERIAL]);
-  Tensor x0 = Tensor(b_shape, devices[DeviceIdx::SERIAL]);
+  Tensor a  = Tensor::rand(a_shape, devices[DeviceIdx::SERIAL]);
+  Tensor b  = Tensor::rand(b_shape, devices[DeviceIdx::SERIAL]);
+  Tensor x0 = Tensor::zeros(b_shape, devices[DeviceIdx::SERIAL]);
 
   a = a.transpose() * a;
 

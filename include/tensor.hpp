@@ -124,10 +124,31 @@ public:
     return out;
   }
 
+  [[nodiscard]] Tensor sadd(Tensor const &other) const
+  {
+    Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
+    this->device->sadd(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
+
+  [[nodiscard]] Tensor ssub(Tensor const &other) const
+  {
+    Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
+    this->device->ssub(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
+
   [[nodiscard]] Tensor smul(Tensor const &other) const
   {
     Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
     this->device->smul(this->buffer, other.buffer, out.buffer);
+    return out;
+  }
+
+  [[nodiscard]] Tensor sdiv(Tensor const &other) const
+  {
+    Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
+    this->device->sdiv(this->buffer, other.buffer, out.buffer);
     return out;
   }
 

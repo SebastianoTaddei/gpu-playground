@@ -8,7 +8,57 @@ namespace gpu_playground::backend
 
 using EigenBuffer = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
 
-void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
+namespace
+{
+
+struct Add
+{
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, EigenBuffer const &b) const
+  {
+    return a + b;
+  }
+
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, float const b) const
+  {
+    return a.array() + b;
+  }
+};
+
+struct Sub
+{
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, EigenBuffer const &b) const
+  {
+    return a - b;
+  }
+
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, float const b) const
+  {
+    return a.array() - b;
+  }
+};
+
+struct Mul
+{
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, EigenBuffer const &b) const
+  {
+    return a.cwiseProduct(b);
+  }
+
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, float const b) const { return a * b; }
+};
+
+struct Div
+{
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, EigenBuffer const &b) const
+  {
+    return a.cwiseQuotient(b);
+  }
+
+  [[nodiscard]] EigenBuffer operator()(EigenBuffer const &a, float const b) const { return a / b; }
+};
+
+template <class Op>
+void cwisem_op(Buffer const &a, Buffer const &b, Buffer &c, Op const &op)
 {
   assert_same_shape(a, b, c);
 
@@ -16,18 +66,32 @@ void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
   auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
 
-  eigen_c = eigen_a + eigen_b;
+  eigen_c = op(eigen_a, eigen_b);
+}
+
+template <class Op>
+void cwises_op(Buffer const &a, Buffer const &b, Buffer &c, Op const &op)
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
+  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
+  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+
+  auto const scalar_b = eigen_b(0);
+  eigen_c             = op(eigen_a, scalar_b);
+}
+
+} // namespace
+
+void EigenDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwisem_op(a, b, c, Add{});
 }
 
 void EigenDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
-
-  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
-  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
-  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
-
-  eigen_c = eigen_a - eigen_b;
+  cwisem_op(a, b, c, Sub{});
 }
 
 void EigenDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
@@ -43,35 +107,32 @@ void EigenDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 
 void EigenDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
-
-  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
-  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
-  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
-
-  eigen_c = eigen_a.cwiseProduct(eigen_b);
+  cwisem_op(a, b, c, Mul{});
 }
 
 void EigenDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
+  cwisem_op(a, b, c, Div{});
+}
 
-  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
-  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
-  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
+void EigenDevice::sadd(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Add{});
+}
 
-  eigen_c = eigen_a.cwiseQuotient(eigen_b);
+void EigenDevice::ssub(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Sub{});
 }
 
 void EigenDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible_smul(a, b, c);
+  cwises_op(a, b, c, Mul{});
+}
 
-  auto const &eigen_a = *static_cast<EigenBuffer const *>(a.get());
-  auto const &eigen_b = *static_cast<EigenBuffer const *>(b.get());
-  auto &eigen_c       = *static_cast<EigenBuffer *>(c.get());
-
-  eigen_c = eigen_a * eigen_b(0);
+void EigenDevice::sdiv(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Div{});
 }
 
 Buffer EigenDevice::new_buffer(std::vector<float> data, Shape shape) const

@@ -33,7 +33,13 @@ public:
 
   void cdiv(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
+  void sadd(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
+  void ssub(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
   void smul(Buffer const &a, Buffer const &b, Buffer &c) const override;
+
+  void sdiv(Buffer const &a, Buffer const &b, Buffer &c) const override;
 
   [[nodiscard]] Buffer new_buffer(std::vector<float> data, Shape shape) const override;
 

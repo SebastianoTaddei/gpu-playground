@@ -1,6 +1,5 @@
 #include <cmath>
 
-#include "buffer.hpp"
 #include "serial_device.hpp"
 
 namespace gpu_playground::backend
@@ -8,7 +7,31 @@ namespace gpu_playground::backend
 
 using SerialBuffer = std::vector<float>;
 
-void SerialDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
+namespace
+{
+
+struct Add
+{
+  [[nodiscard]] constexpr float operator()(float const a, float const b) const { return a + b; }
+};
+
+struct Sub
+{
+  [[nodiscard]] constexpr float operator()(float const a, float const b) const { return a - b; }
+};
+
+struct Mul
+{
+  [[nodiscard]] constexpr float operator()(float const a, float const b) const { return a * b; }
+};
+
+struct Div
+{
+  [[nodiscard]] constexpr float operator()(float const a, float const b) const { return a / b; }
+};
+
+template <class Op>
+void cwisem_op(Buffer const &a, Buffer const &b, Buffer &c, Op const &op)
 {
   assert_same_shape(a, b, c);
 
@@ -18,22 +41,36 @@ void SerialDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
   for (size_t i{0}; i < a.size(); i++)
   {
-    serial_c[i] = serial_a[i] + serial_b[i];
+    serial_c[i] = op(serial_a[i], serial_b[i]);
   }
+}
+
+template <class Op>
+void cwises_op(Buffer const &a, Buffer const &b, Buffer &c, Op const &op)
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
+  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
+  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+
+  auto const scalar_b = serial_b.front();
+  for (size_t i{0}; i < a.size(); i++)
+  {
+    serial_c[i] = op(serial_a[i], scalar_b);
+  }
+}
+
+} // namespace
+
+void SerialDevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwisem_op(a, b, c, Add{});
 }
 
 void SerialDevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
-
-  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
-  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
-  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
-
-  for (size_t i{0}; i < a.size(); i++)
-  {
-    serial_c[i] = serial_a[i] - serial_b[i];
-  }
+  cwisem_op(a, b, c, Sub{});
 }
 
 void SerialDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
@@ -63,45 +100,32 @@ void SerialDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
 
 void SerialDevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
-
-  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
-  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
-  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
-
-  for (size_t i{0}; i < a.size(); i++)
-  {
-    serial_c[i] = serial_a[i] * serial_b[i];
-  }
+  cwisem_op(a, b, c, Mul{});
 }
 
 void SerialDevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_same_shape(a, b, c);
+  cwisem_op(a, b, c, Div{});
+}
 
-  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
-  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
-  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+void SerialDevice::sadd(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Add{});
+}
 
-  for (size_t i{0}; i < a.size(); i++)
-  {
-    serial_c[i] = serial_a[i] / serial_b[i];
-  }
+void SerialDevice::ssub(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Sub{});
 }
 
 void SerialDevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const
 {
-  assert_compatible_smul(a, b, c);
+  cwises_op(a, b, c, Mul{});
+}
 
-  auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
-  auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
-  auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
-
-  auto const sb = serial_b.front();
-  for (size_t i{0}; i < a.size(); i++)
-  {
-    serial_c[i] = serial_a[i] * sb;
-  }
+void SerialDevice::sdiv(Buffer const &a, Buffer const &b, Buffer &c) const
+{
+  cwises_op(a, b, c, Div{});
 }
 
 Buffer SerialDevice::new_buffer(std::vector<float> data, Shape shape) const

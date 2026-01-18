@@ -169,7 +169,7 @@ inline void assert_compatible_mul(
 #endif
 }
 
-inline void assert_compatible_smul(
+inline void assert_compatible_sop(
     [[maybe_unused]] Buffer const &a,
     [[maybe_unused]] Buffer const &b,
     [[maybe_unused]] Buffer const &c

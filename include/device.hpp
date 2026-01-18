@@ -31,7 +31,16 @@ public:
   cdiv(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
 
   virtual void
+  sadd(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
+
+  virtual void
+  ssub(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
+
+  virtual void
   smul(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
+
+  virtual void
+  sdiv(backend::Buffer const &a, backend::Buffer const &b, backend::Buffer &c) const = 0;
 
   [[nodiscard]] virtual backend::Buffer new_buffer(std::vector<float> data, Shape shape) const = 0;
 

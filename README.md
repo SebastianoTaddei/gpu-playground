@@ -25,8 +25,11 @@ For now the focus is on:
   - [x] matrix-matrix division
   - [ ] matrix-vector multiplication (via broadcasting)
   - [ ] matrix-vector division (via broadcasting)
-- Linear algebra:
-  - [ ] Solving linear systems (*i.e.,* $Ax = b$)
+- Linear systems solvers:
+  - [x] gradient descent
+  - [x] conjugate gradient
+  - [ ] GMRES
+  - [ ] BiCGSTAB
 
 As such we will create several shaders/kernels to compute this operations in an
 efficient manner.

@@ -10,7 +10,15 @@ namespace gpu_playground
 
 class Device
 {
+protected:
+  Device() = default; // Allow derived classes to construct
+
 public:
+  Device(Device const &)            = delete;
+  Device &operator=(Device const &) = delete;
+  Device(Device &&)                 = delete;
+  Device &operator=(Device &&)      = delete;
+
   virtual ~Device() = default;
 
   [[nodiscard]] virtual DeviceType type() const = 0;

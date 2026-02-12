@@ -4,4 +4,7 @@
 # Folders
 build/
 .cache/
+.idea/
 /third_party/
+cmake-build-debug/
+cmake-build-release/

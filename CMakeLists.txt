@@ -43,17 +43,17 @@ target_include_directories(gpu_playground INTERFACE
 )
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  option(BUILD_TESTS "Build tests" OFF)
-  option(BUILD_BENCHMARKS "Build benchmarks" OFF)
+  option(GPU_PLAYGROUND_BUILD_TESTS "Build tests" OFF)
+  option(GPU_PLAYGROUND_BUILD_BENCHMARKS "Build benchmarks" OFF)
 
-  if(BUILD_TESTS)
+  if(GPU_PLAYGROUND_BUILD_TESTS)
     string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO
       "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}"
     )
     add_subdirectory(${SRC_DIR}/tests)
   endif()
 
-  if(BUILD_BENCHMARKS)
+  if(GPU_PLAYGROUND_BUILD_BENCHMARKS)
     add_subdirectory(${SRC_DIR}/benchmarks)
   endif()
 endif()

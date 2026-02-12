@@ -25,8 +25,8 @@ public:
   Buffer()                          = delete;
   Buffer(Buffer const &)            = delete;
   Buffer &operator=(Buffer const &) = delete;
-  Buffer(Buffer and)                = default;
-  Buffer &operator=(Buffer and)     = default;
+  Buffer(Buffer &&)                 = default;
+  Buffer &operator=(Buffer &&)      = default;
   ~Buffer()                         = default;
 
   Buffer(HandlePtr handle, Shape shape, DeviceType device_type)

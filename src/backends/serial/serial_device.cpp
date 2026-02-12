@@ -133,7 +133,8 @@ Buffer SerialDevice::new_buffer(std::vector<float> data, Shape shape) const
   return Buffer{
       HandlePtr{
           new SerialBuffer(std::move(data)),
-          [](void *ptr) -> void { delete static_cast<SerialBuffer *>(ptr); }
+          [](void *ptr) -> void
+          { std::default_delete<SerialBuffer>{}(static_cast<SerialBuffer *>(ptr)); }
       },
       shape,
       SerialDevice::s_type

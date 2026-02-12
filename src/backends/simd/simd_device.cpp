@@ -1,6 +1,7 @@
 #include <cmath>
 
-#include "xsimd/xsimd.hpp"
+#include <memory>
+#include <xsimd/xsimd.hpp>
 
 #include "simd_device.hpp"
 
@@ -193,7 +194,8 @@ Buffer SIMDDevice::new_buffer(std::vector<float> data, Shape shape) const
   return Buffer{
       HandlePtr{
           new SIMDBuffer(data.cbegin(), data.cend()),
-          [](void *ptr) -> void { delete static_cast<SIMDBuffer *>(ptr); }
+          [](void *ptr) -> void
+          { std::default_delete<SIMDBuffer>{}(static_cast<SIMDBuffer *>(ptr)); }
       },
       shape,
       SIMDDevice::s_type,

@@ -1,6 +1,7 @@
 option(GPU_PLAYGROUND_ENABLE_EIGEN "Enable Eigen backend" OFF)
 option(GPU_PLAYGROUND_ENABLE_SIMD "Enable SIMD backend" OFF)
 option(GPU_PLAYGROUND_ENABLE_METAL "Enable Metal backend" OFF)
+option(GPU_PLAYGROUND_ENABLE_CUDA "Enable CUDA backend" OFF)
 
 add_library(gpu_playground_backend INTERFACE)
 add_library(gpu_playground::backend ALIAS gpu_playground_backend)
@@ -40,3 +41,12 @@ if(GPU_PLAYGROUND_ENABLE_METAL)
     metal_backend
   )
 endif()
+
+if(GPU_PLAYGROUND_ENABLE_CUDA)
+  message(STATUS "GPU Playground: CUDA backend enabled")
+  include(CUDA)
+  target_link_libraries(gpu_playground_backend INTERFACE
+    cuda_backend
+  )
+endif()
+

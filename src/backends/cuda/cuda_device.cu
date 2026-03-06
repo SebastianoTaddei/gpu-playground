@@ -59,7 +59,7 @@ void CUDADevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 
   auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
   auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
-  auto *cu_c       = static_cast<CUDABuffer const *>(c.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
 
   constexpr int N = 1024;
   constexpr int blockSize = 256;
@@ -106,7 +106,16 @@ Buffer CUDADevice::new_buffer(std::vector<float> data, Shape shape) const
   };
 }
 
-void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const {}
+void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const 
+{
+  assert_compatible_copy(from, to);
+
+  auto const bytes    = from.size() * sizeof(float);
+  auto const *cu_from = static_cast<CUDABuffer const *>(from.get());
+  auto *cu_to         = static_cast<CUDABuffer *>(to.get());
+
+  cudaMemcpyAsync(cu_from->buffer, cu_to->buffer, bytes, cudaMemcpyDeviceToDevice, this->pimpl->stream);
+}
 
 void CUDADevice::transpose(Buffer const &from, Buffer &to) const {}
 

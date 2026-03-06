@@ -51,6 +51,8 @@ struct CUDADevice::Impl
 
 CUDADevice::CUDADevice() : pimpl(std::make_unique<Impl>()) {}
 
+CUDADevice::~CUDADevice() = default;
+
 void CUDADevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
 {
   assert_same_shape(a, b, c);
@@ -63,7 +65,7 @@ void CUDADevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   constexpr int blockSize = 256;
   constexpr int gridSize = (N + blockSize - 1) / blockSize;
 
-  vec_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(cu_a->buffer, cu_b->buffer, cu_c->buffer);
+  vec_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(cu_a->buffer, cu_b->buffer, cu_c->buffer, N);
 }
 
 void CUDADevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const {}
@@ -91,8 +93,8 @@ Buffer CUDADevice::new_buffer(std::vector<float> data, Shape shape) const
 
   return Buffer{
     HandlePtr{
-      new CUDADevice(cuda_device),
-      [](void *ptr) -> void
+      new CUDABuffer(cu_buffer),
+      [this](void *ptr) -> void
       {
         auto cu_ptr = static_cast<CUDABuffer *>(ptr);
         cudaFreeAsync(cu_ptr->buffer, this->pimpl->stream);
@@ -104,9 +106,9 @@ Buffer CUDADevice::new_buffer(std::vector<float> data, Shape shape) const
   };
 }
 
-void copy_buffer(Buffer const &from, Buffer &to) const {}
+void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const {}
 
-void transpose(Buffer const &from, Buffer &to) const {}
+void CUDADevice::transpose(Buffer const &from, Buffer &to) const {}
 
 std::vector<float> CUDADevice::cpu(Buffer const &buffer) const
 {
@@ -121,9 +123,14 @@ std::vector<float> CUDADevice::cpu(Buffer const &buffer) const
   return result;
 }
 
-void sync(Buffer const &buffer) const 
+void CUDADevice::sync(Buffer const &buffer) const 
 {
   cudaStreamSynchronize(this->pimpl->stream);
 }
 
+}
+
+gpu_playground::DevicePtr gpu_playground::make_cuda_device()
+{
+  return std::make_shared<gpu_playground::backend::CUDADevice>();
 }

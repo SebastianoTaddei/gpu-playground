@@ -5,15 +5,16 @@
 
 #include "cuda_device.hpp"
 
-#define CHECK(call) \
-{ \
-    const cudaError_t error = call; \
-    if (error != cudaSuccess) { \
-        std::cerr << "Error: " << cudaGetErrorString(error) \
-                  << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
-        exit(1); \
-    } \
-}
+#define CHECK(call)                                                                                \
+  {                                                                                                \
+    const cudaError_t error = call;                                                                \
+    if (error != cudaSuccess)                                                                      \
+    {                                                                                              \
+      std::cerr << "Error: " << cudaGetErrorString(error) << " at " << __FILE__ << ":" << __LINE__ \
+                << std::endl;                                                                      \
+      exit(1);                                                                                     \
+    }                                                                                              \
+  }
 
 namespace gpu_playground::backend
 {
@@ -43,10 +44,7 @@ struct CUDADevice::Impl
   Impl &operator=(Impl const &) = delete;
   Impl &operator=(Impl &&)      = delete;
 
-  ~Impl()
-  {
-    cudaStreamDestroy(this->stream);
-  }
+  ~Impl() { cudaStreamDestroy(this->stream); }
 };
 
 CUDADevice::CUDADevice() : pimpl(std::make_unique<Impl>()) {}
@@ -61,11 +59,14 @@ void CUDADevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
   auto *cu_c       = static_cast<CUDABuffer *>(c.get());
 
-  constexpr int N = 1024;
-  constexpr int blockSize = 256;
-  constexpr int gridSize = (N + blockSize - 1) / blockSize;
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
 
-  vec_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(cu_a->buffer, cu_b->buffer, cu_c->buffer, N);
+  vec_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
 }
 
 void CUDADevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const {}
@@ -89,24 +90,26 @@ Buffer CUDADevice::new_buffer(std::vector<float> data, Shape shape) const
   auto const bytes = data.size() * sizeof(float);
   CUDABuffer cu_buffer{};
   CHECK(cudaMallocAsync(&(cu_buffer.buffer), bytes, this->pimpl->stream));
-  CHECK(cudaMemcpyAsync(cu_buffer.buffer, data.data(), bytes, cudaMemcpyHostToDevice, this->pimpl->stream));
+  CHECK(cudaMemcpyAsync(
+      cu_buffer.buffer, data.data(), bytes, cudaMemcpyHostToDevice, this->pimpl->stream
+  ));
 
   return Buffer{
-    HandlePtr{
-      new CUDABuffer(cu_buffer),
-      [this](void *ptr) -> void
-      {
-        auto cu_ptr = static_cast<CUDABuffer *>(ptr);
-        cudaFreeAsync(cu_ptr->buffer, this->pimpl->stream);
-        std::default_delete<CUDABuffer>{}(cu_ptr);
-      }
-    },
-    shape,
-    CUDADevice::s_type
+      HandlePtr{
+          new CUDABuffer(cu_buffer),
+          [this](void *ptr) -> void
+          {
+            auto cu_ptr = static_cast<CUDABuffer *>(ptr);
+            CHECK(cudaFreeAsync(cu_ptr->buffer, this->pimpl->stream));
+            std::default_delete<CUDABuffer>{}(cu_ptr);
+          }
+      },
+      shape,
+      CUDADevice::s_type
   };
 }
 
-void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const 
+void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const
 {
   assert_compatible_copy(from, to);
 
@@ -114,7 +117,9 @@ void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const
   auto const *cu_from = static_cast<CUDABuffer const *>(from.get());
   auto *cu_to         = static_cast<CUDABuffer *>(to.get());
 
-  cudaMemcpyAsync(cu_from->buffer, cu_to->buffer, bytes, cudaMemcpyDeviceToDevice, this->pimpl->stream);
+  CHECK(cudaMemcpyAsync(
+      cu_to->buffer, cu_from->buffer, bytes, cudaMemcpyDeviceToDevice, this->pimpl->stream
+  ));
 }
 
 void CUDADevice::transpose(Buffer const &from, Buffer &to) const {}
@@ -125,19 +130,21 @@ std::vector<float> CUDADevice::cpu(Buffer const &buffer) const
 
   auto const bytes = buffer.size() * sizeof(float);
   std::vector<float> result(buffer.size());
-  cudaMemcpyAsync(result.data(), cu_ptr->buffer, bytes, cudaMemcpyDeviceToHost, this->pimpl->stream);
+  CHECK(cudaMemcpyAsync(
+      result.data(), cu_ptr->buffer, bytes, cudaMemcpyDeviceToHost, this->pimpl->stream
+  ));
 
-  cudaStreamSynchronize(this->pimpl->stream);
+  CHECK(cudaStreamSynchronize(this->pimpl->stream));
 
   return result;
 }
 
-void CUDADevice::sync(Buffer const &buffer) const 
+void CUDADevice::sync(Buffer const &buffer) const
 {
-  cudaStreamSynchronize(this->pimpl->stream);
+  CHECK(cudaStreamSynchronize(this->pimpl->stream));
 }
 
-}
+} // namespace gpu_playground::backend
 
 gpu_playground::DevicePtr gpu_playground::make_cuda_device()
 {

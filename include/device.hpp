@@ -82,6 +82,10 @@ DevicePtr make_simd_device();
 DevicePtr make_metal_device();
 #endif
 
+#ifdef GPU_PLAYGROUND_HAS_CUDA
+DevicePtr make_cuda_device();
+#endif
+
 inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
 {
 
@@ -102,6 +106,11 @@ inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
   devices[DeviceIdx::METAL] = make_metal_device();
 #else
   devices[DeviceIdx::METAL] = nullptr;
+#endif
+#ifdef GPU_PLAYGROUND_HAS_CUDA
+  devices[DeviceIdx::CUDA] = make_cuda_device();
+#else
+  devices[DeviceIdx::CUDA] = nullptr;
 #endif
 
   return devices;

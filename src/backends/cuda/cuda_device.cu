@@ -1,7 +1,16 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-#include "vec_add.cu"
+#include "mat_add.cu"
+#include "mat_sub.cu"
+#include "mat_cmul.cu"
+#include "mat_cdiv.cu"
+#include "mat_sadd.cu"
+#include "mat_ssub.cu"
+#include "mat_smul.cu"
+#include "mat_sdiv.cu"
+#include "mat_mul.cu"
+#include "mat_trans.cu"
 
 #include "cuda_device.hpp"
 
@@ -63,27 +72,156 @@ void CUDADevice::add(Buffer const &a, Buffer const &b, Buffer &c) const
   int const blockSize = 256;
   int const gridSize  = (N + blockSize - 1) / blockSize;
 
-  vec_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+  mat_add<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
       cu_a->buffer, cu_b->buffer, cu_c->buffer, N
   );
   CHECK(cudaGetLastError());
 }
 
-void CUDADevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const {}
+void CUDADevice::sub(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_same_shape(a, b, c);
 
-void CUDADevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
 
-void CUDADevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
 
-void CUDADevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  mat_sub<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
 
-void CUDADevice::sadd(Buffer const &a, Buffer const &b, Buffer &c) const {}
+void CUDADevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_compatible_mul(a, b, c);
 
-void CUDADevice::ssub(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
 
-void CUDADevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  auto const [m, k]    = a.shape();
+  int const n          = b.shape().cols;
+  auto const blockSize = dim3(16, 16);
+  auto const gridSize  = dim3((n + blockSize.x - 1) / blockSize.x, (m + blockSize.y - 1) / blockSize.y);
 
-void CUDADevice::sdiv(Buffer const &a, Buffer const &b, Buffer &c) const {}
+  mat_mul<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, m, k, n
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::cmul(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_same_shape(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_cmul<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::cdiv(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_same_shape(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_cdiv<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::sadd(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_sadd<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::ssub(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_ssub<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::smul(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_smul<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
+
+void CUDADevice::sdiv(Buffer const &a, Buffer const &b, Buffer &c) const 
+{
+  assert_compatible_sop(a, b, c);
+
+  auto const *cu_a = static_cast<CUDABuffer const *>(a.get());
+  auto const *cu_b = static_cast<CUDABuffer const *>(b.get());
+  auto *cu_c       = static_cast<CUDABuffer *>(c.get());
+
+  int const N         = a.size();
+  int const blockSize = 256;
+  int const gridSize  = (N + blockSize - 1) / blockSize;
+
+  mat_sdiv<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_a->buffer, cu_b->buffer, cu_c->buffer, N
+  );
+  CHECK(cudaGetLastError());
+}
 
 Buffer CUDADevice::new_buffer(std::vector<float> data, Shape shape) const
 {
@@ -122,7 +260,22 @@ void CUDADevice::copy_buffer(Buffer const &from, Buffer &to) const
   ));
 }
 
-void CUDADevice::transpose(Buffer const &from, Buffer &to) const {}
+void CUDADevice::transpose(Buffer const &from, Buffer &to) const 
+{
+  assert_compatible_transpose(from, to);
+
+  auto const *cu_from = static_cast<CUDABuffer const *>(from.get());
+  auto *cu_to         = static_cast<CUDABuffer *>(to.get());
+
+  auto const [m, n]    = from.shape();
+  auto const blockSize = dim3(16, 16);
+  auto const gridSize  = dim3((n + blockSize.x - 1) / blockSize.x, (m + blockSize.y - 1) / blockSize.y);
+
+  mat_trans<<<gridSize, blockSize, 0, this->pimpl->stream>>>(
+      cu_from->buffer, cu_to->buffer, m, n
+  );
+  CHECK(cudaGetLastError());
+}
 
 std::vector<float> CUDADevice::cpu(Buffer const &buffer) const
 {

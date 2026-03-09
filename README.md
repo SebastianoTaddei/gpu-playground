@@ -43,7 +43,7 @@ backends. For now the focus is on:
 - [x] SIMD (vectorised backend on CPU, thanks to the
 [xsimd](https://xsimd.readthedocs.io/en/latest/) library).
 - [x] Metal (GPU backend).
-- [ ] CUDA (GPU backend).
+- [x] CUDA (GPU backend).
 
 ## Performance
 

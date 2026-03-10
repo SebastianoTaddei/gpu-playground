@@ -17,7 +17,8 @@ public:
   SerialDevice(SerialDevice &&)                 = delete;
   SerialDevice &operator=(SerialDevice const &) = delete;
   SerialDevice &operator=(SerialDevice &&)      = delete;
-  ~SerialDevice() override                      = default;
+
+  ~SerialDevice() override = default;
 
   [[nodiscard]] DeviceType type() const override { return SerialDevice::s_type; }
 

@@ -88,7 +88,6 @@ DevicePtr make_cuda_device();
 
 inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
 {
-
   std::array<DevicePtr, DeviceIdx::COUNT> devices{};
 
   devices[DeviceIdx::SERIAL] = make_serial_device();

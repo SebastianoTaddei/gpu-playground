@@ -32,7 +32,7 @@ TEST_CASE("algorithms: gradient descent", "[algorithms]")
   {
     if (device != nullptr)
     {
-      SECTION(std::string(get_device_name(device->type())))
+      INFO(std::string(get_device_name(device->type())));
       {
         a.to(device);
         b.to(device);

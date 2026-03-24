@@ -13,9 +13,9 @@ private:
 public:
   EigenDevice() = default;
 
-  EigenDevice(EigenDevice const &)            = default;
+  EigenDevice(EigenDevice const &)            = delete;
   EigenDevice(EigenDevice &&)                 = delete;
-  EigenDevice &operator=(EigenDevice const &) = default;
+  EigenDevice &operator=(EigenDevice const &) = delete;
   EigenDevice &operator=(EigenDevice &&)      = delete;
   ~EigenDevice() override                     = default;
 

@@ -13,11 +13,12 @@ private:
 public:
   SIMDDevice() = default;
 
-  SIMDDevice(SIMDDevice const &)            = default;
+  SIMDDevice(SIMDDevice const &)            = delete;
   SIMDDevice(SIMDDevice &&)                 = delete;
-  SIMDDevice &operator=(SIMDDevice const &) = default;
+  SIMDDevice &operator=(SIMDDevice const &) = delete;
   SIMDDevice &operator=(SIMDDevice &&)      = delete;
-  ~SIMDDevice() override                    = default;
+
+  ~SIMDDevice() override = default;
 
   [[nodiscard]] DeviceType type() const override { return SIMDDevice::s_type; }
 

@@ -2,6 +2,7 @@ option(GPU_PLAYGROUND_ENABLE_EIGEN "Enable Eigen backend" OFF)
 option(GPU_PLAYGROUND_ENABLE_SIMD "Enable SIMD backend" OFF)
 option(GPU_PLAYGROUND_ENABLE_METAL "Enable Metal backend" OFF)
 option(GPU_PLAYGROUND_ENABLE_CUDA "Enable CUDA backend" OFF)
+option(GPU_PLAYGROUND_ENABLE_MPS "Enable MPS backend" OFF)
 
 add_library(gpu_playground_backend INTERFACE)
 add_library(gpu_playground::backend ALIAS gpu_playground_backend)
@@ -47,6 +48,19 @@ if(GPU_PLAYGROUND_ENABLE_CUDA)
   include(CUDA)
   target_link_libraries(gpu_playground_backend INTERFACE
     cuda_backend
+  )
+endif()
+
+if(GPU_PLAYGROUND_ENABLE_MPS)
+  if(NOT APPLE)
+    message(FATAL_ERROR
+      "GPU Playground: MPS backend is only supported on macOS"
+    )
+  endif()
+  message(STATUS "GPU Playground: MPS backend enabled")
+  include(MPS)
+  target_link_libraries(gpu_playground_backend INTERFACE
+    mps_backend
   )
 endif()
 

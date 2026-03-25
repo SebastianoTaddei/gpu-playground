@@ -86,6 +86,10 @@ DevicePtr make_metal_device();
 DevicePtr make_cuda_device();
 #endif
 
+#ifdef GPU_PLAYGROUND_HAS_MPS
+DevicePtr make_mps_device();
+#endif
+
 inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
 {
   std::array<DevicePtr, DeviceIdx::COUNT> devices{};
@@ -110,6 +114,11 @@ inline std::array<DevicePtr, DeviceIdx::COUNT> make_devices()
   devices[DeviceIdx::CUDA] = make_cuda_device();
 #else
   devices[DeviceIdx::CUDA] = nullptr;
+#endif
+#ifdef GPU_PLAYGROUND_HAS_MPS
+  devices[DeviceIdx::MPS] = make_mps_device();
+#else
+  devices[DeviceIdx::MPS] = nullptr;
 #endif
 
   return devices;

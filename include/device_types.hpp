@@ -12,7 +12,8 @@ namespace gpu_playground
   X(EIGEN)                                                                                         \
   X(SIMD)                                                                                          \
   X(METAL)                                                                                         \
-  X(CUDA)
+  X(CUDA)                                                                                          \
+  X(MPS)
 
 enum class DeviceType : uint8_t
 {

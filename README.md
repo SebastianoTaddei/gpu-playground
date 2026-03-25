@@ -44,6 +44,7 @@ backends. For now the focus is on:
 [xsimd](https://xsimd.readthedocs.io/en/latest/) library).
 - [x] Metal (GPU backend).
 - [x] CUDA (GPU backend).
+- [-] MPS (GPU backend).
 
 ## Performance
 

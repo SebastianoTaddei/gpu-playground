@@ -47,7 +47,7 @@ public:
   static Tensor rand(Shape shape, DevicePtr device)
   {
     std::mt19937 rng{std::random_device{}()};
-    constexpr float min{1.0};
+    constexpr float min{0.0};
     constexpr float max{1.0};
     std::uniform_real_distribution<float> dist(min, max);
 

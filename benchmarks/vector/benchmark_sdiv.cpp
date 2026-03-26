@@ -29,8 +29,15 @@ TEST_CASE("vector: sdiv", "[vector]")
     {
       a.to(device);
       b.to(device);
+      a.sync();
+      b.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.sdiv(b); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.sdiv(b);
+        c.sync();
+        return c;
+      };
     }
   }
 }

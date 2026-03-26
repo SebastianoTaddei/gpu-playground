@@ -25,8 +25,14 @@ TEST_CASE("vector: trans", "[vector]")
     if (device != nullptr)
     {
       a.to(device);
+      a.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.transpose(); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.transpose();
+        c.sync();
+        return c;
+      };
     }
   }
 }

@@ -30,8 +30,15 @@ TEST_CASE("matrix: cdiv", "[matrix]")
     {
       a.to(device);
       b.to(device);
+      a.sync();
+      b.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.cdiv(b); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.cdiv(b);
+        c.sync();
+        return c;
+      };
     }
   }
 }

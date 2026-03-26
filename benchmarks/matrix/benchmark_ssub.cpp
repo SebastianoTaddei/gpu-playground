@@ -30,8 +30,15 @@ TEST_CASE("matrix: ssub", "[matrix]")
     {
       a.to(device);
       b.to(device);
+      a.sync();
+      b.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.ssub(b); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.ssub(b);
+        c.sync();
+        return c;
+      };
     }
   }
 }

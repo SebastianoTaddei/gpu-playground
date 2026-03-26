@@ -29,8 +29,15 @@ TEST_CASE("vector: cmul", "[vector]")
     {
       a.to(device);
       b.to(device);
+      a.sync();
+      b.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.cmul(b); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.cmul(b);
+        c.sync();
+        return c;
+      };
     }
   }
 }

@@ -29,8 +29,15 @@ TEST_CASE("vector: sadd", "[vector]")
     {
       a.to(device);
       b.to(device);
+      a.sync();
+      b.sync();
 
-      BENCHMARK(std::string(get_device_name(device->type()))) { return a.sadd(b); };
+      BENCHMARK(std::string(get_device_name(device->type())))
+      {
+        auto const c = a.sadd(b);
+        c.sync();
+        return c;
+      };
     }
   }
 }

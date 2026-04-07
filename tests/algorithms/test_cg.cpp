@@ -38,7 +38,7 @@ TEST_CASE("algorithms: conjugate gradient", "[algorithms]")
         b.to(device);
         x0.to(device);
 
-        auto const c = conjuaget_gradient(a, b, x0);
+        auto const c = conjugate_gradient(a, b, x0);
 
         REQUIRE_THAT(c.cpu(), VectorsWithinAbsRel(ref));
       }

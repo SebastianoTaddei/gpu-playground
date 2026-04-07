@@ -80,6 +80,7 @@ void SerialDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
   auto const &serial_a = *static_cast<SerialBuffer const *>(a.get());
   auto const &serial_b = *static_cast<SerialBuffer const *>(b.get());
   auto &serial_c       = *static_cast<SerialBuffer *>(c.get());
+  std::fill(serial_c.begin(), serial_c.end(), 0.0);
 
   auto const [m, k] = a.shape();
   auto const n      = b.shape().cols;

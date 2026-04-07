@@ -100,7 +100,17 @@ public:
 
   friend Tensor operator+(Tensor lhs, Tensor const &rhs);
 
+  void add(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->add(this->buffer, rhs.buffer, out.buffer);
+  }
+
   friend Tensor operator-(Tensor lhs, Tensor const &rhs);
+
+  void sub(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->sub(this->buffer, rhs.buffer, out.buffer);
+  }
 
   Tensor operator*(Tensor const &other) const
   {
@@ -110,11 +120,21 @@ public:
     return out;
   }
 
+  void mul(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->mul(this->buffer, rhs.buffer, out.buffer);
+  }
+
   [[nodiscard]] Tensor cmul(Tensor const &other) const
   {
     Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
     this->device->cmul(this->buffer, other.buffer, out.buffer);
     return out;
+  }
+
+  void cmul(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->cmul(this->buffer, rhs.buffer, out.buffer);
   }
 
   [[nodiscard]] Tensor cdiv(Tensor const &other) const
@@ -124,11 +144,21 @@ public:
     return out;
   }
 
+  void cdiv(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->cdiv(this->buffer, rhs.buffer, out.buffer);
+  }
+
   [[nodiscard]] Tensor sadd(Tensor const &other) const
   {
     Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
     this->device->sadd(this->buffer, other.buffer, out.buffer);
     return out;
+  }
+
+  void sadd(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->sadd(this->buffer, rhs.buffer, out.buffer);
   }
 
   [[nodiscard]] Tensor ssub(Tensor const &other) const
@@ -138,11 +168,21 @@ public:
     return out;
   }
 
+  void ssub(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->ssub(this->buffer, rhs.buffer, out.buffer);
+  }
+
   [[nodiscard]] Tensor smul(Tensor const &other) const
   {
     Tensor out = Tensor::zeros(this->buffer.shape(), this->device);
     this->device->smul(this->buffer, other.buffer, out.buffer);
     return out;
+  }
+
+  void smul(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->smul(this->buffer, rhs.buffer, out.buffer);
   }
 
   [[nodiscard]] Tensor sdiv(Tensor const &other) const
@@ -152,6 +192,11 @@ public:
     return out;
   }
 
+  void sdiv(Tensor const &rhs, Tensor &out) const
+  {
+    this->device->sdiv(this->buffer, rhs.buffer, out.buffer);
+  }
+
   [[nodiscard]] Tensor transpose() const
   {
     auto const [rows, cols] = this->buffer.shape();
@@ -159,6 +204,8 @@ public:
     this->device->transpose(this->buffer, out.buffer);
     return out;
   }
+
+  void transpose(Tensor &out) const { this->device->transpose(this->buffer, out.buffer); }
 
   friend std::ostream &operator<<(std::ostream &os, Tensor const &t);
 

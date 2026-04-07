@@ -36,7 +36,7 @@ TEST_CASE("algorithms: conjugate gradient", "[algorithms]")
 
       BENCHMARK(std::string(get_device_name(device->type())))
       {
-        auto const res = conjuaget_gradient(a, b, x0);
+        auto const res = conjugate_gradient(a, b, x0);
         res.sync();
         return res;
       };

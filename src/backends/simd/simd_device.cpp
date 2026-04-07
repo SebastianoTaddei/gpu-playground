@@ -129,6 +129,7 @@ void SIMDDevice::mul(Buffer const &a, Buffer const &b, Buffer &c) const
   auto const &simd_a = *static_cast<SIMDBuffer const *>(a.get());
   auto const &simd_b = *static_cast<SIMDBuffer const *>(b.get());
   auto &simd_c       = *static_cast<SIMDBuffer *>(c.get());
+  std::fill(simd_c.begin(), simd_c.end(), 0.0);
 
   auto const [m, k]          = a.shape();
   auto const n               = b.shape().cols;
